@@ -8,7 +8,8 @@
     "lint": "eslint . --no-error-on-unmatched-pattern",
     "lint:fix": "eslint . --fix --no-error-on-unmatched-pattern",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "pack:playable": "node tools/playable-pack.mjs --input build/web-mobile --output dist/playable.html"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
