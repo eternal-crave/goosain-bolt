@@ -14,6 +14,11 @@ native
 node_modules/
 
 #//////////////////////////
+# Local work-in-progress (not tracked)
+#//////////////////////////
+_WIP_/
+
+#//////////////////////////
 # VSCode
 #//////////////////////////
 # .vscode/ is tracked for shared recommendations and settings
