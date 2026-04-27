@@ -1,0 +1,9 @@
+library/
+temp/
+local/
+build/
+profiles/
+node_modules/
+package-lock.json
+# Cocos root tsconfig: comments; engine also regenerates extends target
+tsconfig.json

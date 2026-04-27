@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "slevesque.shader",
+    "Yaji.cocos-effect",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "usernamehw.errorlens"
+  ]
+}

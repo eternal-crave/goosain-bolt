@@ -16,7 +16,7 @@ node_modules/
 #//////////////////////////
 # VSCode
 #//////////////////////////
-.vscode/
+# .vscode/ is tracked for shared recommendations and settings
 
 #//////////////////////////
 # WebStorm
