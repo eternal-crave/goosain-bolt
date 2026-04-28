@@ -1,5 +1,7 @@
 import { _decorator, Component, instantiate, Node, Prefab, randomRange } from 'cc';
 import { GameConfig } from '../config/GameConfig';
+import { FinishRibbon } from '../finish/FinishRibbon';
+import { FinishZone } from '../finish/FinishZone';
 import { Obstacle } from './Obstacle';
 import { ObjectPool } from './ObjectPool';
 
@@ -72,12 +74,19 @@ export class Spawner extends Component {
         this._finishSpawned = true;
         const n = instantiate(this.finishPrefab);
         n.setParent(this.obstacleParent);
-        n.setPosition(0, GameConfig.spawnY, 0);
+        n.setPosition(GameConfig.spawnX, GameConfig.obstacleY, 0);
         let obs = n.getComponent(Obstacle);
         if (!obs) {
             obs = n.addComponent(Obstacle);
         }
         obs.moveSpeed = this._runSpeed;
+        const ribbon = n.getComponent(FinishRibbon);
+        if (ribbon) {
+            ribbon.destroy();
+        }
+        if (!n.getComponent(FinishZone)) {
+            n.addComponent(FinishZone);
+        }
         this._finishNode = n;
     }
 
@@ -120,11 +129,13 @@ export class Spawner extends Component {
         if (!this._pool || !this.obstacleParent) {
             return;
         }
-        const lane = (Math.random() * 3) | 0;
-        const laneXs = GameConfig.laneXs;
-        const x = laneXs[lane as 0 | 1 | 2] ?? 0;
+        const jitter =
+            GameConfig.obstacleYJitter > 0
+                ? randomRange(-GameConfig.obstacleYJitter, GameConfig.obstacleYJitter)
+                : 0;
+        const y = GameConfig.obstacleY + jitter;
         const node = this._pool.get();
-        node.setPosition(x, GameConfig.spawnY, 0);
+        node.setPosition(GameConfig.spawnX, y, 0);
         const o = node.getComponent(Obstacle) ?? node.addComponent(Obstacle);
         o.moveSpeed = this._runSpeed;
         this._active.push(node);
@@ -140,7 +151,7 @@ export class Spawner extends Component {
                 this._active.splice(i, 1);
                 continue;
             }
-            if (n.position.y < GameConfig.recycleY) {
+            if (n.position.x < GameConfig.recycleX) {
                 this._pool.put(n);
                 this._active.splice(i, 1);
             }

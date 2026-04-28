@@ -3,7 +3,7 @@ import { _decorator, Component } from 'cc';
 const { ccclass } = _decorator;
 
 /**
- * Moves obstacle downward each frame; speed is assigned by Spawner from GameFlow.
+ * Moves hazard left each frame; speed is assigned by Spawner from GameFlow.
  */
 @ccclass('Obstacle')
 export class Obstacle extends Component {
@@ -14,6 +14,6 @@ export class Obstacle extends Component {
             return;
         }
         const p = this.node.position;
-        this.node.setPosition(p.x, p.y - this.moveSpeed * dt, p.z);
+        this.node.setPosition(p.x - this.moveSpeed * dt, p.y, p.z);
     }
 }

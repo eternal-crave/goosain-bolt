@@ -1,43 +1,55 @@
-import { _decorator, Component, EventTouch, Input, Node, Rect, UITransform, Vec2, Vec3, input } from 'cc';
-import { GameConfig, type LaneIndex } from '../config/GameConfig';
+import { _decorator, CCFloat, Component, EventTouch, Input, Node, Rect, UITransform, Vec3, input } from 'cc';
+import { GameConfig } from '../config/GameConfig';
+import { FinishZone } from '../finish/FinishZone';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
 export class PlayerController extends Component {
-    @property({ tooltip: 'Optional explicit lane X positions; leave empty to use GameConfig.laneXs' })
-    public laneOffsets: number[] = [];
+    /** When false, jump input is ignored (menu / cutscenes). */
+    public inputEnabled = false;
 
-    private _lane: LaneIndex = 1;
-    private _touchStart = new Vec2(0, 0);
-    private _hasTouch = false;
+    @property({ type: CCFloat, tooltip: 'Upward velocity applied when the player jumps.' })
+    public jumpVelocity = GameConfig.jumpVelocity;
+
+    @property({ type: CCFloat, tooltip: 'Downward acceleration affecting jump arc.' })
+    public gravity = GameConfig.gravity;
+
+    @property({ type: CCFloat, tooltip: 'Grounded tolerance used to allow jump near floor.' })
+    public groundSnapEpsilon = 3;
+
+    private _velY = 0;
     private _tmpPos = new Vec3();
 
     public onLoad(): void {
-        const x = this._laneX(this._lane);
-        this.node.setPosition(x, GameConfig.playerY, this.node.position.z);
         input.on(Input.EventType.TOUCH_START, this._onTouchStart, this);
-        input.on(Input.EventType.TOUCH_MOVE, this._onTouchMove, this);
-        input.on(Input.EventType.TOUCH_END, this._onTouchEnd, this);
-        input.on(Input.EventType.TOUCH_CANCEL, this._onTouchEnd, this);
-        this._applyLane(false);
+        this.resetForRun();
     }
 
     public onDestroy(): void {
         input.off(Input.EventType.TOUCH_START, this._onTouchStart, this);
-        input.off(Input.EventType.TOUCH_MOVE, this._onTouchMove, this);
-        input.off(Input.EventType.TOUCH_END, this._onTouchEnd, this);
-        input.off(Input.EventType.TOUCH_CANCEL, this._onTouchEnd, this);
     }
 
-    public resetToCenterLane(): void {
-        this._lane = 1;
-        const x = this._laneX(this._lane);
-        this.node.setPosition(x, GameConfig.playerY, this.node.position.z);
+    public resetForRun(): void {
+        this._velY = 0;
+        this.inputEnabled = false;
+        this._tmpPos.set(GameConfig.playerX, GameConfig.groundY, this.node.position.z);
+        this.node.setPosition(this._tmpPos);
     }
 
-    public getLane(): LaneIndex {
-        return this._lane;
+    public update(dt: number): void {
+        if (!this.inputEnabled) {
+            return;
+        }
+        this._velY -= this.gravity * dt;
+        const p = this.node.position;
+        const gy = GameConfig.groundY;
+        let ny = p.y + this._velY * dt;
+        if (ny <= gy) {
+            ny = gy;
+            this._velY = 0;
+        }
+        this.node.setPosition(p.x, ny, p.z);
     }
 
     public getWorldBounds(): Rect | null {
@@ -46,7 +58,8 @@ export class PlayerController extends Component {
     }
 
     /**
-     * Returns true if player AABB intersects any obstacle node that has UITransform.
+     * Returns true if player AABB intersects any hazard node that has UITransform.
+     * Skips nodes with FinishZone (finish is handled in GameFlow).
      */
     public hitsAnyObstacle(activeObstacles: readonly Node[]): boolean {
         const selfBox = this.getWorldBounds();
@@ -55,6 +68,9 @@ export class PlayerController extends Component {
         }
         for (const n of activeObstacles) {
             if (!n || !n.active) {
+                continue;
+            }
+            if (n.getComponent(FinishZone) || n.getComponentInChildren(FinishZone)) {
                 continue;
             }
             const ui = n.getComponent(UITransform);
@@ -69,51 +85,35 @@ export class PlayerController extends Component {
         return false;
     }
 
-    private _laneX(index: LaneIndex): number {
-        const xs = this.laneOffsets.length >= 3 ? this.laneOffsets : GameConfig.laneXs;
-        return xs[index] ?? 0;
-    }
-
-    private _applyLane(_animate: boolean): void {
-        const x = this._laneX(this._lane);
-        this._tmpPos.set(x, GameConfig.playerY, this.node.position.z);
-        this.node.setPosition(this._tmpPos);
-    }
-
-    private _bumpLane(delta: -1 | 1): void {
-        const next = Math.min(2, Math.max(0, this._lane + delta)) as LaneIndex;
-        if (next !== this._lane) {
-            this._lane = next;
-            this._applyLane(true);
+    public overlapsFinish(finishRoot: Node | null): boolean {
+        if (!finishRoot || !finishRoot.isValid) {
+            return false;
         }
+        if (!finishRoot.getComponent(FinishZone) && !finishRoot.getComponentInChildren(FinishZone)) {
+            return false;
+        }
+        const selfBox = this.getWorldBounds();
+        if (!selfBox) {
+            return false;
+        }
+        const ui =
+            finishRoot.getComponent(UITransform) ??
+            finishRoot.getComponentInChildren(UITransform);
+        if (!ui) {
+            return false;
+        }
+        return selfBox.intersects(ui.getBoundingBoxToWorld());
     }
 
-    private _onTouchStart(e: EventTouch): void {
-        this._hasTouch = true;
-        e.getUILocation(this._touchStart);
-    }
-
-    private _onTouchMove(e: EventTouch): void {
-        if (!this._hasTouch) {
+    private _onTouchStart(_e: EventTouch): void {
+        if (!this.inputEnabled) {
             return;
         }
-        const cur = e.getUILocation();
-        const dx = cur.x - this._touchStart.x;
-        if (Math.abs(dx) >= GameConfig.swipeThreshold) {
-            this._bumpLane(dx < 0 ? -1 : 1);
-            this._touchStart.set(cur);
-        }
-    }
-
-    private _onTouchEnd(e: EventTouch): void {
-        if (!this._hasTouch) {
-            return;
-        }
-        this._hasTouch = false;
-        const cur = e.getUILocation();
-        const dx = cur.x - this._touchStart.x;
-        if (Math.abs(dx) >= GameConfig.swipeThreshold * 0.5) {
-            this._bumpLane(dx < 0 ? -1 : 1);
+        const p = this.node.position;
+        const gy = GameConfig.groundY;
+        const grounded = p.y <= gy + this.groundSnapEpsilon && this._velY <= 0;
+        if (grounded) {
+            this._velY = this.jumpVelocity;
         }
     }
 }

@@ -1,8 +1,6 @@
 import { _decorator, Component, EventTouch, input, Input, Label, Node } from 'cc';
 import { GameConfig } from '../config/GameConfig';
-import { FinishRibbon } from '../finish/FinishRibbon';
 import { PlayerController } from '../player/PlayerController';
-import type { IRunnerState } from './IRunnerState';
 import { Spawner } from './Spawner';
 import { WorldScroll } from './WorldScroll';
 
@@ -16,7 +14,7 @@ enum RunState {
 }
 
 @ccclass('GameFlow')
-export class GameFlow extends Component implements IRunnerState {
+export class GameFlow extends Component {
     @property(PlayerController)
     public player: PlayerController | null = null;
 
@@ -40,7 +38,6 @@ export class GameFlow extends Component implements IRunnerState {
     private _runSpeed = 0;
     private _finishScheduled = false;
     private _graceTimer = 0;
-    private _finishWired = false;
 
     public onLoad(): void {
         input.on(Input.EventType.TOUCH_END, this._onTapMenu, this);
@@ -63,6 +60,9 @@ export class GameFlow extends Component implements IRunnerState {
         if (this.labelGameOver) {
             this.labelGameOver.node.active = false;
         }
+        if (this.player) {
+            this.player.inputEnabled = false;
+        }
         this.scheduleOnce(() => this._restartToMenu(), 1.8);
     }
 
@@ -82,7 +82,6 @@ export class GameFlow extends Component implements IRunnerState {
             this._finishScheduled = true;
             this.spawner?.spawnFinishLine();
             this._graceTimer = GameConfig.obstacleGraceAfterFinish;
-            this._finishWired = false;
         }
 
         if (this._finishScheduled && this._graceTimer > 0) {
@@ -92,16 +91,14 @@ export class GameFlow extends Component implements IRunnerState {
             }
         }
 
-        this._ensureFinishRibbonWired();
-
-        const ribbon = this._findFinishRibbon();
-        if (ribbon) {
-            ribbon.setRunSpeed(this._runSpeed);
-        }
-
         if (this.player && this.spawner) {
             if (this.player.hitsAnyObstacle(this.spawner.getActiveObstacles())) {
                 this._lose();
+                return;
+            }
+            const finish = this.spawner.getFinishNode();
+            if (finish && this.player.overlapsFinish(finish)) {
+                this.notifyWin();
             }
         }
     }
@@ -119,12 +116,14 @@ export class GameFlow extends Component implements IRunnerState {
         this._runSpeed = GameConfig.baseRunSpeed;
         this._finishScheduled = false;
         this._graceTimer = 0;
-        this._finishWired = false;
-        this.player?.resetToCenterLane();
+        this.player?.resetForRun();
         this.spawner?.resetForNewRun();
         this.spawner?.setObstacleSpawning(true);
         this.spawner?.setRunSpeed(this._runSpeed);
         this.worldScroll?.setScrollSpeed(this._runSpeed);
+        if (this.player) {
+            this.player.inputEnabled = true;
+        }
         this._setHudRunning();
     }
 
@@ -134,6 +133,9 @@ export class GameFlow extends Component implements IRunnerState {
         }
         this._state = RunState.Lost;
         this._applyRunningAudioVisual(false);
+        if (this.player) {
+            this.player.inputEnabled = false;
+        }
         if (this.labelGameOver) {
             this.labelGameOver.node.active = true;
         }
@@ -147,9 +149,12 @@ export class GameFlow extends Component implements IRunnerState {
         this._state = RunState.Menu;
         this._distance = 0;
         this._finishScheduled = false;
-        this._finishWired = false;
         this.spawner?.setObstacleSpawning(false);
         this.spawner?.resetForNewRun();
+        if (this.player) {
+            this.player.inputEnabled = false;
+            this.player.resetForRun();
+        }
         this._setHudMenu();
     }
 
@@ -179,28 +184,5 @@ export class GameFlow extends Component implements IRunnerState {
 
     private _applyRunningAudioVisual(running: boolean): void {
         void running;
-    }
-
-    private _findFinishRibbon(): FinishRibbon | null {
-        const n = this.spawner?.getFinishNode();
-        if (!n || !n.isValid) {
-            return null;
-        }
-        return n.getComponent(FinishRibbon) ?? n.getComponentInChildren(FinishRibbon);
-    }
-
-    private _ensureFinishRibbonWired(): void {
-        if (this._finishWired) {
-            return;
-        }
-        const ribbon = this._findFinishRibbon();
-        if (!ribbon) {
-            return;
-        }
-        ribbon.flowTarget = this;
-        if (this.player) {
-            ribbon.playerNode = this.player.node;
-        }
-        this._finishWired = true;
     }
 }

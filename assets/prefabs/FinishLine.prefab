@@ -26,13 +26,10 @@
     "_components": [
       {
         "__id__": 6
-      },
-      {
-        "__id__": 8
       }
     ],
     "_prefab": {
-      "__id__": 10
+      "__id__": 8
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -178,37 +175,6 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "78xI9WGexDXrQXA2QeEj3r"
-  },
-  {
-    "__type__": "dbdbfaU/V9B64pgJq7yAA2J",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 9
-    },
-    "triggerNode": {
-      "__id__": 2
-    },
-    "playerNode": null,
-    "ribbonWidth": 520,
-    "lineWidth": 14,
-    "ropeColor": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 230,
-      "b": 80,
-      "a": 255
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "d7mtj+qRBGfaVh++mwj/Pe"
   },
   {
     "__type__": "cc.PrefabInfo",
