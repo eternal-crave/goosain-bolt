@@ -1,7 +1,10 @@
 {
   "__version__": "1.0.6",
-  "customLayers": [
-    { "name": "GAME", "bit": 0 },
-    { "name": "UI", "bit": 1 }
-  ]
+  "general": {
+    "designResolution": {
+      "width": 1080,
+      "height": 2400,
+      "fitHeight": true
+    }
+  }
 }

@@ -3,6 +3,7 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import tseslint from 'typescript-eslint';
 
 const cocosIgnores = [
+  'tools/**',
   'library/**',
   'temp/**',
   'local/**',
