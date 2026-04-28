@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node, Prefab, randomRange } from 'cc';
+import { _decorator, Component, instantiate, Node, Prefab, randomRange, view, View } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { FinishRibbon } from '../finish/FinishRibbon';
 import { FinishZone } from '../finish/FinishZone';
@@ -26,11 +26,18 @@ export class Spawner extends Component {
     private _finishSpawned = false;
     private _finishNode: Node | null = null;
     private readonly _active: Node[] = [];
+    private _dynamicRecycleX = GameConfig.recycleX;
 
     public onLoad(): void {
         if (this.obstaclePrefab && this.obstacleParent) {
             this._pool = new ObjectPool(this.obstaclePrefab, this.obstacleParent, GameConfig.poolSize);
         }
+        view.on('canvas-resize', this._onCanvasResize, this);
+        this._recomputeRecycleThreshold();
+    }
+
+    public onDestroy(): void {
+        view.off('canvas-resize', this._onCanvasResize, this);
     }
 
     public resetForNewRun(): void {
@@ -74,7 +81,7 @@ export class Spawner extends Component {
         this._finishSpawned = true;
         const n = instantiate(this.finishPrefab);
         n.setParent(this.obstacleParent);
-        n.setPosition(GameConfig.spawnX, GameConfig.obstacleY, 0);
+        n.setPosition(GameConfig.spawnX, this._getObstacleSpawnBaseY(), 0);
         let obs = n.getComponent(Obstacle);
         if (!obs) {
             obs = n.addComponent(Obstacle);
@@ -125,6 +132,35 @@ export class Spawner extends Component {
         this._nextSpawnAt = randomRange(GameConfig.spawnIntervalMin, GameConfig.spawnIntervalMax);
     }
 
+    private _onCanvasResize(): void {
+        this._recomputeRecycleThreshold();
+    }
+
+    /**
+     * Recycle threshold is computed in obstacle local space from current viewport width.
+     * This keeps disappear timing stable when canvas size changes at runtime.
+     */
+    private _recomputeRecycleThreshold(): void {
+        if (!this.obstacleParent || !this.obstacleParent.isValid) {
+            this._dynamicRecycleX = GameConfig.recycleX;
+            return;
+        }
+        const visible = View.instance.getVisibleSize();
+        if (visible.width <= 0) {
+            this._dynamicRecycleX = GameConfig.recycleX;
+            return;
+        }
+        const scaleX = this.obstacleParent.worldScale.x;
+        if (Math.abs(scaleX) <= 1e-5) {
+            this._dynamicRecycleX = GameConfig.recycleX;
+            return;
+        }
+        const parentWorldX = this.obstacleParent.worldPosition.x;
+        const leftEdgeWorldX = -visible.width * 0.5;
+        const recycleWorldX = leftEdgeWorldX - GameConfig.recycleViewportMargin;
+        this._dynamicRecycleX = (recycleWorldX - parentWorldX) / scaleX;
+    }
+
     private _spawnOneObstacle(): void {
         if (!this._pool || !this.obstacleParent) {
             return;
@@ -133,7 +169,7 @@ export class Spawner extends Component {
             GameConfig.obstacleYJitter > 0
                 ? randomRange(-GameConfig.obstacleYJitter, GameConfig.obstacleYJitter)
                 : 0;
-        const y = GameConfig.obstacleY + jitter;
+        const y = this._getObstacleSpawnBaseY() + jitter;
         const node = this._pool.get();
         node.setPosition(GameConfig.spawnX, y, 0);
         const o = node.getComponent(Obstacle) ?? node.addComponent(Obstacle);
@@ -141,17 +177,29 @@ export class Spawner extends Component {
         this._active.push(node);
     }
 
+    /**
+     * Obstacles are children of obstacleParent, so local Y=0 maps to the container baseline.
+     * Move ObstacleContainer Y in scene to change ground height for all spawned obstacles.
+     */
+    private _getObstacleSpawnBaseY(): number {
+        if (this.obstacleParent && this.obstacleParent.isValid) {
+            return 0;
+        }
+        return GameConfig.obstacleY;
+    }
+
     private _recycleOffscreen(): void {
         if (!this._pool) {
             return;
         }
+        const recycleX = Number.isFinite(this._dynamicRecycleX) ? this._dynamicRecycleX : GameConfig.recycleX;
         for (let i = this._active.length - 1; i >= 0; i--) {
             const n = this._active[i];
             if (!n || !n.isValid) {
                 this._active.splice(i, 1);
                 continue;
             }
-            if (n.position.x < GameConfig.recycleX) {
+            if (n.position.x < recycleX) {
                 this._pool.put(n);
                 this._active.splice(i, 1);
             }

@@ -98,8 +98,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 200.99999999999997,
-      "y": 437.00000000000006,
+      "x": 540,
+      "y": 1200,
       "z": 0
     },
     "_lrot": {
@@ -628,8 +628,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
+      "x": 334.65,
+      "y": -592.134,
       "z": 0
     },
     "_lrot": {
@@ -866,6 +866,9 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "jumpVelocity": 1560,
+    "gravity": 1100,
+    "groundSnapEpsilon": 3,
     "_id": "8a/Ufw589ExJvwZhASirow"
   },
   {
@@ -1490,6 +1493,11 @@
     "labelGameOver": {
       "__id__": 34
     },
+    "baseRunSpeed": 380,
+    "speedRampPerSecond": 10,
+    "maxRunSpeed": 720,
+    "distanceLinearFactor": 0.001,
+    "distanceRampDivisor": 2000,
     "_id": "64yhYa9oZC5J3xpJMCwLgt"
   },
   {
@@ -1527,8 +1535,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 401.99999999999994,
-      "height": 874
+      "width": 1080,
+      "height": 2400
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

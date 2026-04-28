@@ -40,6 +40,9 @@ export const GameConfig = {
     /** Recycle when hazard local X is left of this. */
     recycleX: -720,
 
+    /** Extra world-space distance beyond left viewport edge before recycling obstacles. */
+    recycleViewportMargin: 120,
+
     /** Hazard anchor Y aligned with groundY so floor obstacles share the same baseline. */
     obstacleY: -336.8345,
 
