@@ -8,8 +8,8 @@ export const GameConfig = {
     /** Player anchor X (fixed while side-scrolling, local under GameRoot). */
     playerX: -320,
 
-    /** Ground line local Y under GameRoot (player lands here). */
-    groundY: -680,
+    /** Ground line local Y under GameRoot (synced to initial Player Y in Main.scene). */
+    groundY: -336.8345,
 
     /** Upward velocity applied on jump (local units / s). */
     jumpVelocity: 780,
@@ -40,8 +40,8 @@ export const GameConfig = {
     /** Recycle when hazard local X is left of this. */
     recycleX: -720,
 
-    /** Hazard anchor Y (low obstacles on the ground line). */
-    obstacleY: -680,
+    /** Hazard anchor Y aligned with groundY so floor obstacles share the same baseline. */
+    obstacleY: -336.8345,
 
     /** Optional vertical jitter for hazards (±pixels). */
     obstacleYJitter: 90,
