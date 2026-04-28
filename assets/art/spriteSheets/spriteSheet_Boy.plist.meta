@@ -1,0 +1,155 @@
+{
+  "ver": "1.0.8",
+  "importer": "sprite-atlas",
+  "imported": true,
+  "uuid": "711c6af9-7166-4e1b-8291-8a49b9ac98a0",
+  "files": [
+    ".json"
+  ],
+  "subMetas": {
+    "3b9fa": {
+      "importer": "sprite-frame",
+      "uuid": "711c6af9-7166-4e1b-8291-8a49b9ac98a0@3b9fa",
+      "displayName": "",
+      "id": "3b9fa",
+      "name": "spriteSheet_Girl-0",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": 0,
+        "trimX": 1,
+        "trimY": 1,
+        "width": 128,
+        "height": 249,
+        "rawWidth": 128,
+        "rawHeight": 249,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [],
+          "indexes": [],
+          "uv": [],
+          "nuv": [],
+          "minPos": [],
+          "maxPos": []
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "cc189ebe-6f75-4fae-9c9b-3f8c4a86c110@6c48a",
+        "atlasUuid": "711c6af9-7166-4e1b-8291-8a49b9ac98a0",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "1f231": {
+      "importer": "sprite-frame",
+      "uuid": "711c6af9-7166-4e1b-8291-8a49b9ac98a0@1f231",
+      "displayName": "",
+      "id": "1f231",
+      "name": "spriteSheet_Girl-1",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": 0,
+        "trimX": 131,
+        "trimY": 1,
+        "width": 128,
+        "height": 243,
+        "rawWidth": 128,
+        "rawHeight": 243,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [],
+          "indexes": [],
+          "uv": [],
+          "nuv": [],
+          "minPos": [],
+          "maxPos": []
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "cc189ebe-6f75-4fae-9c9b-3f8c4a86c110@6c48a",
+        "atlasUuid": "711c6af9-7166-4e1b-8291-8a49b9ac98a0",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "204db": {
+      "importer": "sprite-frame",
+      "uuid": "711c6af9-7166-4e1b-8291-8a49b9ac98a0@204db",
+      "displayName": "",
+      "id": "204db",
+      "name": "spriteSheet_Girl-2",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": 0,
+        "trimX": 261,
+        "trimY": 1,
+        "width": 126,
+        "height": 240,
+        "rawWidth": 126,
+        "rawHeight": 240,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [],
+          "indexes": [],
+          "uv": [],
+          "nuv": [],
+          "minPos": [],
+          "maxPos": []
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "cc189ebe-6f75-4fae-9c9b-3f8c4a86c110@6c48a",
+        "atlasUuid": "711c6af9-7166-4e1b-8291-8a49b9ac98a0",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "atlasTextureName": "spriteSheet_Girl_Jump.png",
+    "format": 3,
+    "uuid": "711c6af9-7166-4e1b-8291-8a49b9ac98a0",
+    "textureUuid": "cc189ebe-6f75-4fae-9c9b-3f8c4a86c110@6c48a"
+  }
+}
