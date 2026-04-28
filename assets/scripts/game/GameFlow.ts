@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, input, Input, Label, Node } from 'cc';
+import { _decorator, CCFloat, Component, EventTouch, input, Input, Label, Node } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { PlayerController } from '../player/PlayerController';
 import { Spawner } from './Spawner';
@@ -32,6 +32,21 @@ export class GameFlow extends Component {
 
     @property(Label)
     public labelGameOver: Label | null = null;
+
+    @property({ type: CCFloat, tooltip: 'Starting horizontal speed for each run.' })
+    public baseRunSpeed = GameConfig.baseRunSpeed;
+
+    @property({ type: CCFloat, tooltip: 'Additional speed gain over distance.' })
+    public speedRampPerSecond = GameConfig.speedRampPerSecond;
+
+    @property({ type: CCFloat, tooltip: 'Maximum horizontal speed cap.' })
+    public maxRunSpeed = GameConfig.maxRunSpeed;
+
+    @property({ type: CCFloat, tooltip: 'Linear distance factor added to run speed.' })
+    public distanceLinearFactor = 0.001;
+
+    @property({ type: CCFloat, tooltip: 'Distance divisor used by speed ramp term.' })
+    public distanceRampDivisor = 2000;
 
     private _state = RunState.Menu;
     private _distance = 0;
@@ -70,10 +85,7 @@ export class GameFlow extends Component {
         if (this._state !== RunState.Running) {
             return;
         }
-        this._runSpeed = Math.min(
-            GameConfig.maxRunSpeed,
-            GameConfig.baseRunSpeed + this._distance * 0.001 + GameConfig.speedRampPerSecond * (this._distance / 2000),
-        );
+        this._runSpeed = this._calculateRunSpeed(this._distance);
         this.spawner?.setRunSpeed(this._runSpeed);
         this.worldScroll?.setScrollSpeed(this._runSpeed);
         this._distance += this._runSpeed * dt;
@@ -110,10 +122,19 @@ export class GameFlow extends Component {
         this._beginRun();
     }
 
+    private _calculateRunSpeed(distance: number): number {
+        const safeRampDivisor = this.distanceRampDivisor <= 0 ? 1 : this.distanceRampDivisor;
+        const nextSpeed =
+            this.baseRunSpeed +
+            distance * this.distanceLinearFactor +
+            this.speedRampPerSecond * (distance / safeRampDivisor);
+        return Math.min(this.maxRunSpeed, nextSpeed);
+    }
+
     private _beginRun(): void {
         this._state = RunState.Running;
         this._distance = 0;
-        this._runSpeed = GameConfig.baseRunSpeed;
+        this._runSpeed = this._calculateRunSpeed(0);
         this._finishScheduled = false;
         this._graceTimer = 0;
         this.player?.resetForRun();
