@@ -866,7 +866,7 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "jumpVelocity": 1560,
+    "jumpVelocity": 1000,
     "gravity": 1100,
     "groundSnapEpsilon": 3,
     "_id": "8a/Ufw589ExJvwZhASirow"
