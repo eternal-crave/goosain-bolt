@@ -76,6 +76,54 @@ export class PlayerController extends Component {
         return ui ? ui.getBoundingBoxToWorld() : null;
     }
 
+    private _buildInsetWorldBounds(source: Readonly<Rect>, insetX: number, insetY: number): Rect {
+        const clampedInsetX = Math.max(0, insetX);
+        const clampedInsetY = Math.max(0, insetY);
+        const width = Math.max(1, source.width - clampedInsetX * 2);
+        const height = Math.max(1, source.height - clampedInsetY * 2);
+        return new Rect(
+            source.x + clampedInsetX,
+            source.y + clampedInsetY,
+            width,
+            height
+        );
+    }
+
+    private _getBestObstacleWorldBounds(obstacleRoot: Node): Rect | null {
+        const rootUi = obstacleRoot.getComponent(UITransform);
+        let best = rootUi ? rootUi.getBoundingBoxToWorld() : null;
+        const candidates = obstacleRoot.getComponentsInChildren(UITransform);
+        for (const ui of candidates) {
+            if (!ui.node.activeInHierarchy) {
+                continue;
+            }
+            const next = ui.getBoundingBoxToWorld();
+            if (next.width <= 0 || next.height <= 0) {
+                continue;
+            }
+            if (!best || next.width * next.height < best.width * best.height) {
+                best = next;
+            }
+        }
+        return best;
+    }
+
+    private _hasMeaningfulOverlap(a: Readonly<Rect>, b: Readonly<Rect>): boolean {
+        const overlapX =
+            Math.min(a.x + a.width, b.x + b.width) -
+            Math.max(a.x, b.x);
+        const overlapY =
+            Math.min(a.y + a.height, b.y + b.height) -
+            Math.max(a.y, b.y);
+        if (overlapX <= 0 || overlapY <= 0) {
+            return false;
+        }
+        return (
+            overlapX >= GameConfig.collisionMinOverlapX &&
+            overlapY >= GameConfig.collisionMinOverlapY
+        );
+    }
+
     /**
      * Returns true if player AABB intersects any hazard node that has UITransform.
      * Skips nodes with FinishZone (finish is handled in GameFlow).
@@ -85,6 +133,11 @@ export class PlayerController extends Component {
         if (!selfBox) {
             return false;
         }
+        const selfInsetBox = this._buildInsetWorldBounds(
+            selfBox,
+            GameConfig.collisionInsetPlayerX,
+            GameConfig.collisionInsetPlayerY
+        );
         for (const n of activeObstacles) {
             if (!n || !n.active) {
                 continue;
@@ -92,12 +145,16 @@ export class PlayerController extends Component {
             if (n.getComponent(FinishZone) || n.getComponentInChildren(FinishZone)) {
                 continue;
             }
-            const ui = n.getComponent(UITransform);
-            if (!ui) {
+            const obstacleBounds = this._getBestObstacleWorldBounds(n);
+            if (!obstacleBounds) {
                 continue;
             }
-            const other = ui.getBoundingBoxToWorld();
-            if (selfBox.intersects(other)) {
+            const obstacleInsetBox = this._buildInsetWorldBounds(
+                obstacleBounds,
+                GameConfig.collisionInsetObstacleX,
+                GameConfig.collisionInsetObstacleY
+            );
+            if (this._hasMeaningfulOverlap(selfInsetBox, obstacleInsetBox)) {
                 return true;
             }
         }

@@ -64,6 +64,18 @@ export const GameConfig = {
   /** Pool capacity for charger prefab instances. */
   chargerPoolSize: 8,
 
+  /** Shrinks player world AABB before obstacle collision checks (pixels). */
+  collisionInsetPlayerX: 12,
+  collisionInsetPlayerY: 14,
+
+  /** Shrinks obstacle world AABB before obstacle collision checks (pixels). */
+  collisionInsetObstacleX: 60,
+  collisionInsetObstacleY: 80,
+
+  /** Minimum penetration depth required on each axis to count as obstacle hit (pixels). */
+  collisionMinOverlapX: 32,
+  collisionMinOverlapY: 50,
+
   /** One background tile width in local space (match UITransform width of each BgTile). */
   bgTileWidth: 1080,
 
