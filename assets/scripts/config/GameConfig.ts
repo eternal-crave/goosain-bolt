@@ -70,12 +70,6 @@ export const GameConfig = {
   /** One background tile width in local space (match UITransform width of each BgTile). */
   bgTileWidth: 1080,
 
-  /** Legacy FinishRibbon simulation (unused by side-scroller flow). */
-  ribbonSegments: 22,
-  ribbonIterations: 6,
-  ribbonGravity: 980,
-  ribbonDamping: 0.02,
-
   /** Seconds between money cluster spawns (random in range). */
   moneySpawnIntervalMin: 1.8,
   moneySpawnIntervalMax: 2.8,
