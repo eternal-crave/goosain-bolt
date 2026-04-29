@@ -14,7 +14,7 @@ description: Builds overlay or full-screen UI panels in Cocos Creator 3.x TypeSc
 
 ## Architecture
 
-1. **One component per panel root** (e.g. `LoseUi` on node `LosePanel`). Layout lives under that node; gameplay scripts only toggle visibility and pass references.
+1. **One component per panel root** (e.g. `LoseUi` on node `GameEndPanel`). Layout lives under that node; gameplay scripts only toggle visibility and pass references.
 2. **Gameplay flow** (`GameFlow` or equivalent): `panel.node.active = true/false`; no tween/layout logic duplicated there unless trivial.
 3. **Class layout** (match repo style): `@property` fields first, then lifecycle (`onEnable` / `onDisable` / `onDestroy`), then private methods.
 4. **Scene/layout**: Prefer guiding the user in Editor for heavy hierarchy when faster; implement scripts and integration in code.
