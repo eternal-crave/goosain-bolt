@@ -13,12 +13,17 @@ export class Spawner extends Component {
     public obstaclePrefab: Prefab | null = null;
 
     @property(Prefab)
+    public chargerObstaclePrefab: Prefab | null = null;
+
+    @property(Prefab)
     public finishPrefab: Prefab | null = null;
 
     @property(Node)
     public obstacleParent: Node | null = null;
 
     private _pool: ObjectPool | null = null;
+    private _chargerPool: ObjectPool | null = null;
+    private readonly _nodeToPool = new WeakMap<Node, ObjectPool>();
     private _spawnTimer = 0;
     private _nextSpawnAt = 0.6;
     private _spawningObstacles = false;
@@ -31,6 +36,13 @@ export class Spawner extends Component {
     public onLoad(): void {
         if (this.obstaclePrefab && this.obstacleParent) {
             this._pool = new ObjectPool(this.obstaclePrefab, this.obstacleParent, GameConfig.poolSize);
+        }
+        if (this.chargerObstaclePrefab && this.obstacleParent) {
+            this._chargerPool = new ObjectPool(
+                this.chargerObstaclePrefab,
+                this.obstacleParent,
+                GameConfig.chargerPoolSize,
+            );
         }
         view.on('canvas-resize', this._onCanvasResize, this);
         this._recomputeRecycleThreshold();
@@ -87,6 +99,7 @@ export class Spawner extends Component {
             obs = n.addComponent(Obstacle);
         }
         obs.moveSpeed = this._runSpeed;
+        obs.speedScale = 1;
         const ribbon = n.getComponent(FinishRibbon);
         if (ribbon) {
             ribbon.destroy();
@@ -113,8 +126,8 @@ export class Spawner extends Component {
         this._spawnTimer += dt;
         if (this._spawnTimer >= this._nextSpawnAt) {
             this._spawnTimer = 0;
-            this._spawnOneObstacle();
-            this._scheduleNextSpawn();
+            const spawnedCharger = this._spawnOneObstacle();
+            this._scheduleNextSpawn(spawnedCharger);
         }
     }
 
@@ -123,13 +136,18 @@ export class Spawner extends Component {
             return;
         }
         for (const n of [...this._active]) {
-            this._pool.put(n);
+            const pool = this._nodeToPool.get(n) ?? this._pool;
+            pool.put(n);
         }
         this._active.length = 0;
     }
 
-    private _scheduleNextSpawn(): void {
-        this._nextSpawnAt = randomRange(GameConfig.spawnIntervalMin, GameConfig.spawnIntervalMax);
+    private _scheduleNextSpawn(afterChargerSpawn = false): void {
+        let next = randomRange(GameConfig.spawnIntervalMin, GameConfig.spawnIntervalMax);
+        if (afterChargerSpawn) {
+            next += GameConfig.chargerSpawnIntervalExtra;
+        }
+        this._nextSpawnAt = next;
     }
 
     private _onCanvasResize(): void {
@@ -161,20 +179,27 @@ export class Spawner extends Component {
         this._dynamicRecycleX = (recycleWorldX - parentWorldX) / scaleX;
     }
 
-    private _spawnOneObstacle(): void {
+    /** @returns true if a charger was spawned (next interval may be longer). */
+    private _spawnOneObstacle(): boolean {
         if (!this._pool || !this.obstacleParent) {
-            return;
+            return false;
         }
+        const useCharger =
+            this._chargerPool !== null && Math.random() < GameConfig.chargerSpawnChance;
+        const pool = useCharger ? this._chargerPool! : this._pool;
         const jitter =
             GameConfig.obstacleYJitter > 0
                 ? randomRange(-GameConfig.obstacleYJitter, GameConfig.obstacleYJitter)
                 : 0;
         const y = this._getObstacleSpawnBaseY() + jitter;
-        const node = this._pool.get();
+        const node = pool.get();
+        this._nodeToPool.set(node, pool);
         node.setPosition(GameConfig.spawnX, y, 0);
         const o = node.getComponent(Obstacle) ?? node.addComponent(Obstacle);
         o.moveSpeed = this._runSpeed;
+        o.speedScale = useCharger ? GameConfig.chargerSpeedScale : 1;
         this._active.push(node);
+        return useCharger;
     }
 
     /**
@@ -200,7 +225,8 @@ export class Spawner extends Component {
                 continue;
             }
             if (n.position.x < recycleX) {
-                this._pool.put(n);
+                const pool = this._nodeToPool.get(n) ?? this._pool;
+                pool.put(n);
                 this._active.splice(i, 1);
             }
         }

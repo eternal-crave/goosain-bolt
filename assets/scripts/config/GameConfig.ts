@@ -52,6 +52,18 @@ export const GameConfig = {
   /** Pool capacity for obstacles. */
   poolSize: 16,
 
+  /** Closing hazard: effective speed = runSpeed × this (must be > 1 vs world scroll). */
+  chargerSpeedScale: 1.35,
+
+  /** Probability to spawn from charger prefab pool when that prefab is assigned on Spawner. */
+  chargerSpawnChance: 0.75,
+
+  /** Extra seconds added to the *next* spawn delay after a charger spawned (breathing room). */
+  chargerSpawnIntervalExtra: 0.55,
+
+  /** Pool capacity for charger prefab instances. */
+  chargerPoolSize: 8,
+
   /** One background tile width in local space (match UITransform width of each BgTile). */
   bgTileWidth: 1080,
 

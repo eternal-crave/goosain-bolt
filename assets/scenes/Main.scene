@@ -1551,6 +1551,10 @@
       "__uuid__": "572ce028-afab-4034-83ba-e96c12ceb4cb",
       "__expectedType__": "cc.Prefab"
     },
+    "chargerObstaclePrefab": {
+      "__uuid__": "3e85ddf4-1787-4382-8256-0e95788472d3",
+      "__expectedType__": "cc.Prefab"
+    },
     "finishPrefab": {
       "__uuid__": "cb87f611-0452-482a-b964-fe625bd2a1b7",
       "__expectedType__": "cc.Prefab"
