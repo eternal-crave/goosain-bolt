@@ -30,6 +30,12 @@ export const GameConfig = {
   /** Distance (abstract) before finish sequence starts. */
   distanceToFinish: 8000,
 
+  /**
+   * Finish gates spawn when distance reaches `distanceToFinish - finishSpawnLead` so they scroll in like hazards.
+   * Must be less than distanceToFinish.
+   */
+  finishSpawnLead: 1600,
+
   /** GameEnd panel title after crossing the finish ribbon. */
   gameEndWinTitle: 'You made it!',
 
@@ -51,6 +57,11 @@ export const GameConfig = {
 
   /** Spawn hazards off-screen to the right (local X under obstacle parent). */
   spawnX: 640,
+
+  /**
+   * Finish prefab spawn local X under obstacle parent (usually larger than spawnX so gates start farther right).
+   */
+  finishSpawnX: 1200,
 
   /** Recycle when hazard local X is left of this. */
   recycleX: -720,

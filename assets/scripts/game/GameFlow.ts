@@ -6,6 +6,7 @@ import { PlayerController } from '../player/PlayerController';
 import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerVisualAnimator } from '../player/PlayerVisualAnimator';
 import { LoseUi } from '../ui/LoseUi';
+import { FinishRibbon } from '../finish/FinishRibbon';
 import { Spawner } from './Spawner';
 import { WorldScroll } from './WorldScroll';
 
@@ -125,7 +126,8 @@ export class GameFlow extends Component {
         this.worldScroll?.setScrollSpeed(this._runSpeed);
         this._distance += this._runSpeed * dt;
 
-        if (!this._finishScheduled && this._distance >= GameConfig.distanceToFinish) {
+        const finishSpawnAt = GameConfig.distanceToFinish - GameConfig.finishSpawnLead;
+        if (!this._finishScheduled && this._distance >= finishSpawnAt) {
             this._finishScheduled = true;
             this.spawner?.spawnFinishLine();
             this._graceTimer = GameConfig.obstacleGraceAfterFinish;
@@ -163,6 +165,7 @@ export class GameFlow extends Component {
             }
             const finish = this.spawner.getFinishNode();
             if (finish && this.player.overlapsFinish(finish)) {
+                finish.getComponent(FinishRibbon)?.playSplit();
                 this.notifyWin();
             }
             if (this._state === RunState.Running) {

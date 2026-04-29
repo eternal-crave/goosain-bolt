@@ -98,7 +98,7 @@ export class Spawner extends Component {
         this._finishSpawned = true;
         const n = instantiate(this.finishPrefab);
         n.setParent(this.obstacleParent);
-        n.setPosition(GameConfig.spawnX, this._getObstacleSpawnBaseY(), 0);
+        n.setPosition(GameConfig.finishSpawnX, this._getObstacleSpawnBaseY(), 0);
         let obs = n.getComponent(Obstacle);
         if (!obs) {
             obs = n.addComponent(Obstacle);
