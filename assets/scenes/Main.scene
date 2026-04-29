@@ -1100,8 +1100,8 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "jumpVelocity": 1000,
-    "gravity": 1100,
+    "jumpVelocity": 3000,
+    "gravity": 6000,
     "groundSnapEpsilon": 3,
     "hitboxSprite": {
       "__id__": 25
@@ -1712,9 +1712,9 @@
     "labelGameOver": {
       "__id__": 55
     },
-    "baseRunSpeed": 380,
+    "baseRunSpeed": 800,
     "speedRampPerSecond": 10,
-    "maxRunSpeed": 720,
+    "maxRunSpeed": 1200,
     "distanceLinearFactor": 0.001,
     "distanceRampDivisor": 2000,
     "_id": "64yhYa9oZC5J3xpJMCwLgt"
