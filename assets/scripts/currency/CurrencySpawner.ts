@@ -1,11 +1,13 @@
 import {
     _decorator,
+    Canvas,
     Component,
     Node,
     Prefab,
     randomRange,
     Rect,
     UITransform,
+    Vec3,
     view,
     View,
 } from 'cc';
@@ -37,6 +39,9 @@ export class CurrencySpawner extends Component {
     private _dynamicRecycleX = GameConfig.recycleX;
     /** When false, money pickups stay on screen until run reset. */
     private _offscreenRecycleEnabled = true;
+    private _canvas: Canvas | null = null;
+    private readonly _screenProbe = new Vec3();
+    private readonly _worldProbe = new Vec3();
 
     public onLoad(): void {
         this._buildPools();
@@ -175,12 +180,13 @@ export class CurrencySpawner extends Component {
         }
 
         const sizes = cluster.map((n) => this._getPickupLocalSize(n));
-        const xs = this._computeClusterXs(sizes);
+        const spawnX = this._computeSpawnLocalX(GameConfig.moneySpawnViewportMargin);
+        const xs = this._computeClusterXs(sizes, spawnX);
         const yScale = this._computeVerticalScale(normYs, sizes);
 
         for (let i = 0; i < cluster.length; i++) {
             const node = cluster[i]!;
-            const x = xs[i] ?? GameConfig.spawnX;
+            const x = xs[i] ?? spawnX;
             const y = baseY + (normYs[i] ?? 0) * yScale;
             node.setPosition(x, y, 0);
             let obs = node.getComponent(Obstacle);
@@ -227,9 +233,11 @@ export class CurrencySpawner extends Component {
      * Center X per index: first at spawnX, then center distance ≥ half-widths + pair gap,
      * and at least `moneyStepX` between centers when that is larger.
      */
-    private _computeClusterXs(sizes: ReadonlyArray<{ w: number; h: number }>): number[] {
+    private _computeClusterXs(
+        sizes: ReadonlyArray<{ w: number; h: number }>,
+        spawnX: number,
+    ): number[] {
         const xs: number[] = [];
-        const spawnX = GameConfig.spawnX;
         const minCenterDx = GameConfig.moneyStepX;
         for (let i = 0; i < sizes.length; i++) {
             if (i === 0) {
@@ -245,6 +253,36 @@ export class CurrencySpawner extends Component {
             xs.push((xs[i - 1] ?? spawnX) + dx);
         }
         return xs;
+    }
+
+    private _computeSpawnLocalX(worldMargin: number): number {
+        const parent = this.moneyParent;
+        if (!parent || !parent.isValid) {
+            return GameConfig.designWidth * 0.5 + worldMargin;
+        }
+        const rightWorldX = this._computeRightViewportWorldX();
+        return this._worldXToParentLocalX(rightWorldX + worldMargin, parent);
+    }
+
+    private _computeRightViewportWorldX(): number {
+        const canvas = this._getCanvas();
+        const camera = canvas?.cameraComponent;
+        if (camera) {
+            const visible = view.getVisibleSize();
+            this._screenProbe.set(visible.width, visible.height * 0.5, 0);
+            camera.screenToWorld(this._screenProbe, this._worldProbe);
+            return this._worldProbe.x;
+        }
+        const visible = view.getVisibleSize();
+        return visible.width * 0.5;
+    }
+
+    private _worldXToParentLocalX(worldX: number, parent: Node): number {
+        const scaleX = parent.worldScale.x;
+        if (Math.abs(scaleX) <= 1e-5) {
+            return worldX;
+        }
+        return (worldX - parent.worldPosition.x) / scaleX;
     }
 
     /**
@@ -334,6 +372,15 @@ export class CurrencySpawner extends Component {
         const leftEdgeWorldX = -visible.width * 0.5;
         const recycleWorldX = leftEdgeWorldX - GameConfig.recycleViewportMargin;
         this._dynamicRecycleX = (recycleWorldX - parentWorldX) / scaleX;
+    }
+
+    private _getCanvas(): Canvas | null {
+        if (this._canvas && this._canvas.isValid) {
+            return this._canvas;
+        }
+        const nextCanvas = this.node.scene?.getComponentInChildren(Canvas) ?? null;
+        this._canvas = nextCanvas && nextCanvas.isValid ? nextCanvas : null;
+        return this._canvas;
     }
 
     private _getBestPickupWorldBounds(root: Node): Rect | null {

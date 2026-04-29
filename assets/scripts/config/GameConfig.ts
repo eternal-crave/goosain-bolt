@@ -55,13 +55,11 @@ export const GameConfig = {
   spawnIntervalMin: 2.5,
   spawnIntervalMax: 3,
 
-  /** Spawn hazards off-screen to the right (local X under obstacle parent). */
-  spawnX: 640,
+  /** World-space margin beyond right viewport edge for regular obstacle spawn. */
+  obstacleSpawnViewportMargin: 100,
 
-  /**
-   * Finish prefab spawn local X under obstacle parent (usually larger than spawnX so gates start farther right).
-   */
-  finishSpawnX: 1200,
+  /** Extra world-space margin beyond right viewport edge for finish gate spawn. */
+  finishSpawnViewportMargin: 520,
 
   /** Recycle when hazard local X is left of this. */
   recycleX: -720,
@@ -109,6 +107,9 @@ export const GameConfig = {
 
   /** Local Y of cluster baseline above money parent origin (same space as obstacles if parent shared). */
   moneyBaselineLocalY: 140,
+
+  /** World-space margin beyond right viewport edge where money cluster starts spawning. */
+  moneySpawnViewportMargin: 100,
 
   /** Prewarmed instances per money prefab variant. */
   moneyPoolSizePerPrefab: 8,

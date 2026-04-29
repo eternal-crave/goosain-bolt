@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node, Prefab, randomRange, view, View } from 'cc';
+import { _decorator, Canvas, Component, instantiate, Node, Prefab, randomRange, Vec3, view, View } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { FinishZone } from '../finish/FinishZone';
 import { Obstacle } from './Obstacle';
@@ -33,6 +33,9 @@ export class Spawner extends Component {
     private _dynamicRecycleX = GameConfig.recycleX;
     /** When false, obstacles stay on screen (e.g. lose / win) until run reset. */
     private _offscreenRecycleEnabled = true;
+    private _canvas: Canvas | null = null;
+    private readonly _screenProbe = new Vec3();
+    private readonly _worldProbe = new Vec3();
 
     public onLoad(): void {
         if (this.obstaclePrefab && this.obstacleParent) {
@@ -98,7 +101,8 @@ export class Spawner extends Component {
         this._finishSpawned = true;
         const n = instantiate(this.finishPrefab);
         n.setParent(this.obstacleParent);
-        n.setPosition(GameConfig.finishSpawnX, this._getObstacleSpawnBaseY(), 0);
+        const spawnX = this._computeSpawnLocalX(GameConfig.finishSpawnViewportMargin);
+        n.setPosition(spawnX, this._getObstacleSpawnBaseY(), 0);
         let obs = n.getComponent(Obstacle);
         if (!obs) {
             obs = n.addComponent(Obstacle);
@@ -195,7 +199,8 @@ export class Spawner extends Component {
         const y = this._getObstacleSpawnBaseY() + jitter;
         const node = pool.get();
         this._nodeToPool.set(node, pool);
-        node.setPosition(GameConfig.spawnX, y, 0);
+        const spawnX = this._computeSpawnLocalX(GameConfig.obstacleSpawnViewportMargin);
+        node.setPosition(spawnX, y, 0);
         const o = node.getComponent(Obstacle) ?? node.addComponent(Obstacle);
         o.moveSpeed = this._runSpeed;
         o.speedScale = useCharger ? GameConfig.chargerSpeedScale : 1;
@@ -212,6 +217,45 @@ export class Spawner extends Component {
             return 0;
         }
         return GameConfig.obstacleY;
+    }
+
+    private _computeSpawnLocalX(worldMargin: number): number {
+        const parent = this.obstacleParent;
+        if (!parent || !parent.isValid) {
+            return GameConfig.designWidth * 0.5 + worldMargin;
+        }
+        const rightWorldX = this._computeRightViewportWorldX();
+        return this._worldXToParentLocalX(rightWorldX + worldMargin, parent);
+    }
+
+    private _computeRightViewportWorldX(): number {
+        const canvas = this._getCanvas();
+        const camera = canvas?.cameraComponent;
+        if (camera) {
+            const visible = view.getVisibleSize();
+            this._screenProbe.set(visible.width, visible.height * 0.5, 0);
+            camera.screenToWorld(this._screenProbe, this._worldProbe);
+            return this._worldProbe.x;
+        }
+        const visible = view.getVisibleSize();
+        return visible.width * 0.5;
+    }
+
+    private _worldXToParentLocalX(worldX: number, parent: Node): number {
+        const scaleX = parent.worldScale.x;
+        if (Math.abs(scaleX) <= 1e-5) {
+            return worldX;
+        }
+        return (worldX - parent.worldPosition.x) / scaleX;
+    }
+
+    private _getCanvas(): Canvas | null {
+        if (this._canvas && this._canvas.isValid) {
+            return this._canvas;
+        }
+        const nextCanvas = this.node.scene?.getComponentInChildren(Canvas) ?? null;
+        this._canvas = nextCanvas && nextCanvas.isValid ? nextCanvas : null;
+        return this._canvas;
     }
 
     private _recycleOffscreen(): void {
