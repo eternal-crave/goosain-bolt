@@ -1,6 +1,20 @@
-import { _decorator, CCFloat, Component, EventTouch, Input, Node, Rect, UITransform, Vec3, input } from 'cc';
+import {
+    _decorator,
+    CCFloat,
+    Component,
+    EventTouch,
+    Input,
+    Node,
+    Rect,
+    Sprite,
+    UITransform,
+    Vec3,
+    input,
+} from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { FinishZone } from '../finish/FinishZone';
+import { getCollisionWorldRect } from '../game/HitboxBounds';
+import { Obstacle } from '../game/Obstacle';
 import { PlayerVisualAnimator } from './PlayerVisualAnimator';
 
 const { ccclass, property } = _decorator;
@@ -18,6 +32,13 @@ export class PlayerController extends Component {
 
     @property({ type: CCFloat, tooltip: 'Grounded tolerance used to allow jump near floor.' })
     public groundSnapEpsilon = 3;
+
+    @property({
+        type: Sprite,
+        tooltip:
+            'Optional sprite whose UITransform defines the hitbox. If empty, uses legacy bounds: root Sprite, else root UITransform.',
+    })
+    public hitboxSprite: Sprite | null = null;
 
     private _velY = 0;
     private _tmpPos = new Vec3();
@@ -71,57 +92,9 @@ export class PlayerController extends Component {
         this.node.setPosition(p.x, ny, p.z);
     }
 
+    /** World-space bounds used for hazards, currency, and finish overlap. */
     public getWorldBounds(): Rect | null {
-        const ui = this.node.getComponent(UITransform);
-        return ui ? ui.getBoundingBoxToWorld() : null;
-    }
-
-    private _buildInsetWorldBounds(source: Readonly<Rect>, insetX: number, insetY: number): Rect {
-        const clampedInsetX = Math.max(0, insetX);
-        const clampedInsetY = Math.max(0, insetY);
-        const width = Math.max(1, source.width - clampedInsetX * 2);
-        const height = Math.max(1, source.height - clampedInsetY * 2);
-        return new Rect(
-            source.x + clampedInsetX,
-            source.y + clampedInsetY,
-            width,
-            height
-        );
-    }
-
-    private _getBestObstacleWorldBounds(obstacleRoot: Node): Rect | null {
-        const rootUi = obstacleRoot.getComponent(UITransform);
-        let best = rootUi ? rootUi.getBoundingBoxToWorld() : null;
-        const candidates = obstacleRoot.getComponentsInChildren(UITransform);
-        for (const ui of candidates) {
-            if (!ui.node.activeInHierarchy) {
-                continue;
-            }
-            const next = ui.getBoundingBoxToWorld();
-            if (next.width <= 0 || next.height <= 0) {
-                continue;
-            }
-            if (!best || next.width * next.height < best.width * best.height) {
-                best = next;
-            }
-        }
-        return best;
-    }
-
-    private _hasMeaningfulOverlap(a: Readonly<Rect>, b: Readonly<Rect>): boolean {
-        const overlapX =
-            Math.min(a.x + a.width, b.x + b.width) -
-            Math.max(a.x, b.x);
-        const overlapY =
-            Math.min(a.y + a.height, b.y + b.height) -
-            Math.max(a.y, b.y);
-        if (overlapX <= 0 || overlapY <= 0) {
-            return false;
-        }
-        return (
-            overlapX >= GameConfig.collisionMinOverlapX &&
-            overlapY >= GameConfig.collisionMinOverlapY
-        );
+        return getCollisionWorldRect(this.node, this.hitboxSprite);
     }
 
     /**
@@ -133,11 +106,6 @@ export class PlayerController extends Component {
         if (!selfBox) {
             return false;
         }
-        const selfInsetBox = this._buildInsetWorldBounds(
-            selfBox,
-            GameConfig.collisionInsetPlayerX,
-            GameConfig.collisionInsetPlayerY
-        );
         for (const n of activeObstacles) {
             if (!n || !n.active) {
                 continue;
@@ -145,16 +113,14 @@ export class PlayerController extends Component {
             if (n.getComponent(FinishZone) || n.getComponentInChildren(FinishZone)) {
                 continue;
             }
-            const obstacleBounds = this._getBestObstacleWorldBounds(n);
-            if (!obstacleBounds) {
+            const obstacle = n.getComponent(Obstacle);
+            const otherBox = obstacle
+                ? obstacle.getCollisionWorldRect()
+                : n.getComponent(UITransform)?.getBoundingBoxToWorld() ?? null;
+            if (!otherBox) {
                 continue;
             }
-            const obstacleInsetBox = this._buildInsetWorldBounds(
-                obstacleBounds,
-                GameConfig.collisionInsetObstacleX,
-                GameConfig.collisionInsetObstacleY
-            );
-            if (this._hasMeaningfulOverlap(selfInsetBox, obstacleInsetBox)) {
+            if (selfBox.intersects(otherBox)) {
                 return true;
             }
         }
