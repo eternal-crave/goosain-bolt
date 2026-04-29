@@ -35,6 +35,8 @@ export class CurrencySpawner extends Component {
     private _spawningMoney = false;
     private _runSpeed = 0;
     private _dynamicRecycleX = GameConfig.recycleX;
+    /** When false, money pickups stay on screen until run reset. */
+    private _offscreenRecycleEnabled = true;
 
     public onLoad(): void {
         this._buildPools();
@@ -57,6 +59,10 @@ export class CurrencySpawner extends Component {
         if (!enabled) {
             this._spawnTimer = 0;
         }
+    }
+
+    public setOffscreenRecyclingEnabled(enabled: boolean): void {
+        this._offscreenRecycleEnabled = enabled;
     }
 
     public setRunSpeed(speed: number): void {
@@ -287,7 +293,7 @@ export class CurrencySpawner extends Component {
     }
 
     private _recycleOffscreen(): void {
-        if (this._pools.length === 0) {
+        if (!this._offscreenRecycleEnabled || this._pools.length === 0) {
             return;
         }
         const recycleX = Number.isFinite(this._dynamicRecycleX)

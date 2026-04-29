@@ -1,6 +1,5 @@
 import { _decorator, Component, instantiate, Node, Prefab, randomRange, view, View } from 'cc';
 import { GameConfig } from '../config/GameConfig';
-import { FinishRibbon } from '../finish/FinishRibbon';
 import { FinishZone } from '../finish/FinishZone';
 import { Obstacle } from './Obstacle';
 import { ObjectPool } from './ObjectPool';
@@ -32,6 +31,8 @@ export class Spawner extends Component {
     private _finishNode: Node | null = null;
     private readonly _active: Node[] = [];
     private _dynamicRecycleX = GameConfig.recycleX;
+    /** When false, obstacles stay on screen (e.g. lose / win) until run reset. */
+    private _offscreenRecycleEnabled = true;
 
     public onLoad(): void {
         if (this.obstaclePrefab && this.obstacleParent) {
@@ -70,6 +71,10 @@ export class Spawner extends Component {
         }
     }
 
+    public setOffscreenRecyclingEnabled(enabled: boolean): void {
+        this._offscreenRecycleEnabled = enabled;
+    }
+
     public setRunSpeed(speed: number): void {
         this._runSpeed = speed;
         for (const n of this._active) {
@@ -100,10 +105,6 @@ export class Spawner extends Component {
         }
         obs.moveSpeed = this._runSpeed;
         obs.speedScale = 1;
-        const ribbon = n.getComponent(FinishRibbon);
-        if (ribbon) {
-            ribbon.destroy();
-        }
         if (!n.getComponent(FinishZone)) {
             n.addComponent(FinishZone);
         }
@@ -214,7 +215,7 @@ export class Spawner extends Component {
     }
 
     private _recycleOffscreen(): void {
-        if (!this._pool) {
+        if (!this._offscreenRecycleEnabled || !this._pool) {
             return;
         }
         const recycleX = Number.isFinite(this._dynamicRecycleX) ? this._dynamicRecycleX : GameConfig.recycleX;

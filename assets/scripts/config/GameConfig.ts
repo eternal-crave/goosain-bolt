@@ -28,7 +28,7 @@ export const GameConfig = {
   maxRunSpeed: 720,
 
   /** Distance (abstract) before finish sequence starts. */
-  distanceToFinish: 4200,
+  distanceToFinish: 8000,
 
   /** Seconds without new obstacles after finish spawns. */
   obstacleGraceAfterFinish: 2.4,

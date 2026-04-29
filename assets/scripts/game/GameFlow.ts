@@ -1,10 +1,11 @@
-import { _decorator, CCFloat, Component, EventTouch, input, Input, Label, Node } from 'cc';
+import { _decorator, CCFloat, Component, EventTouch, find, input, Input, Label, Node } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { CurrencySpawner } from '../currency/CurrencySpawner';
 import { CurrencyWallet } from '../currency/CurrencyWallet';
 import { PlayerController } from '../player/PlayerController';
 import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerVisualAnimator } from '../player/PlayerVisualAnimator';
+import { LoseUi } from '../ui/LoseUi';
 import { Spawner } from './Spawner';
 import { WorldScroll } from './WorldScroll';
 
@@ -47,8 +48,8 @@ export class GameFlow extends Component {
     @property(Label)
     public labelWin: Label | null = null;
 
-    @property(Label)
-    public labelGameOver: Label | null = null;
+    @property(LoseUi)
+    public loseUi: LoseUi | null = null;
 
     @property({ type: CCFloat, tooltip: 'Starting horizontal speed for each run.' })
     public baseRunSpeed = GameConfig.baseRunSpeed;
@@ -70,12 +71,18 @@ export class GameFlow extends Component {
     private _runSpeed = 0;
     private _finishScheduled = false;
     private _graceTimer = 0;
+    /** After a loss, keep LosePanel visible on the menu until the next run starts. */
+    private _losePanelPinned = false;
     /** Obstacle roots that already dealt damage for the current continuous overlap. */
     private readonly _obstacleDamageClaimed = new Set<Node>();
 
     public onLoad(): void {
         input.on(Input.EventType.TOUCH_END, this._onTapMenu, this);
+        this._ensureLoseUi();
         this._setHudMenu();
+        this.spawner?.setOffscreenRecyclingEnabled(true);
+        this.currencySpawner?.setOffscreenRecyclingEnabled(true);
+        this._stopRunMotion();
     }
 
     public onDestroy(): void {
@@ -87,13 +94,17 @@ export class GameFlow extends Component {
             return;
         }
         this._state = RunState.Won;
+        this.spawner?.setObstacleSpawning(false);
+        this.spawner?.setOffscreenRecyclingEnabled(false);
+        this.currencySpawner?.setOffscreenRecyclingEnabled(false);
+        this._stopRunMotion();
         this.currencySpawner?.setMoneySpawning(false);
         this._applyRunningAudioVisual(false);
         if (this.labelWin) {
             this.labelWin.node.active = true;
         }
-        if (this.labelGameOver) {
-            this.labelGameOver.node.active = false;
+        if (this.loseUi) {
+            this.loseUi.node.active = false;
         }
         if (this.player) {
             this.player.inputEnabled = false;
@@ -158,7 +169,31 @@ export class GameFlow extends Component {
         }
     }
 
+    private _ensureLoseUi(): void {
+        const panel = find('Canvas/HUD/LosePanel');
+        if (!panel) {
+            return;
+        }
+        let ui = this.loseUi;
+        if (!ui?.isValid) {
+            ui = panel.getComponent(LoseUi) ?? panel.addComponent(LoseUi);
+            this.loseUi = ui;
+        }
+        ui.wallet = this.currencyWallet ?? null;
+        ui.labelTitle = panel.getChildByName('LoseTitle')?.getComponent(Label) ?? ui.labelTitle;
+        ui.labelSubtitle = panel.getChildByName('LoseSubtitle')?.getComponent(Label) ?? ui.labelSubtitle;
+        ui.labelCardAmount = panel.getChildByName('LoseCardAmount')?.getComponent(Label) ?? ui.labelCardAmount;
+        ui.ctaNode = panel.getChildByName('InstallCta') ?? ui.ctaNode;
+        if (!ui.introRevealTarget) {
+            ui.introRevealTarget = panel.getChildByName('LoseIntroRoot') ?? null;
+        }
+    }
+
     private _onTapMenu(_e: EventTouch): void {
+        if (this._state === RunState.Lost) {
+            this._restartToMenu();
+            return;
+        }
         if (this._state !== RunState.Menu) {
             return;
         }
@@ -175,7 +210,10 @@ export class GameFlow extends Component {
     }
 
     private _beginRun(): void {
+        this._losePanelPinned = false;
         this._state = RunState.Running;
+        this.spawner?.setOffscreenRecyclingEnabled(true);
+        this.currencySpawner?.setOffscreenRecyclingEnabled(true);
         this._distance = 0;
         this._runSpeed = this._calculateRunSpeed(0);
         this._finishScheduled = false;
@@ -203,23 +241,34 @@ export class GameFlow extends Component {
             return;
         }
         this._state = RunState.Lost;
+        this._losePanelPinned = true;
+
+        this._ensureLoseUi();
+        if (this.loseUi) {
+            this.loseUi.node.active = true;
+        }
+        if (this.labelWin) {
+            this.labelWin.node.active = false;
+        }
+
+        this.spawner?.setObstacleSpawning(false);
+        this.spawner?.setOffscreenRecyclingEnabled(false);
+        this.currencySpawner?.setOffscreenRecyclingEnabled(false);
+        this._stopRunMotion();
+
         this.currencySpawner?.setMoneySpawning(false);
         this._applyRunningAudioVisual(false);
         if (this.player) {
             this.player.inputEnabled = false;
             this.player.stopPresentation();
         }
-        if (this.labelGameOver) {
-            this.labelGameOver.node.active = true;
-        }
-        if (this.labelWin) {
-            this.labelWin.node.active = false;
-        }
-        this.scheduleOnce(() => this._restartToMenu(), 1.4);
     }
 
     private _restartToMenu(): void {
         this._state = RunState.Menu;
+        this.spawner?.setOffscreenRecyclingEnabled(true);
+        this.currencySpawner?.setOffscreenRecyclingEnabled(true);
+        this._stopRunMotion();
         this._distance = 0;
         this._finishScheduled = false;
         this.spawner?.setObstacleSpawning(false);
@@ -243,8 +292,8 @@ export class GameFlow extends Component {
         if (this.labelWin) {
             this.labelWin.node.active = false;
         }
-        if (this.labelGameOver) {
-            this.labelGameOver.node.active = false;
+        if (this.loseUi && !this._losePanelPinned) {
+            this.loseUi.node.active = false;
         }
     }
 
@@ -255,12 +304,18 @@ export class GameFlow extends Component {
         if (this.labelWin) {
             this.labelWin.node.active = false;
         }
-        if (this.labelGameOver) {
-            this.labelGameOver.node.active = false;
+        if (this.loseUi) {
+            this.loseUi.node.active = false;
         }
     }
 
     private _applyRunningAudioVisual(running: boolean): void {
         void running;
+    }
+
+    private _stopRunMotion(): void {
+        this.worldScroll?.setScrollSpeed(0);
+        this.spawner?.setRunSpeed(0);
+        this.currencySpawner?.setRunSpeed(0);
     }
 }
