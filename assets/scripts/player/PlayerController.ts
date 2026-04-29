@@ -98,14 +98,15 @@ export class PlayerController extends Component {
     }
 
     /**
-     * Returns true if player AABB intersects any hazard node that has UITransform.
+     * Hazard roots that currently overlap the player (same rules as hitsAnyObstacle).
      * Skips nodes with FinishZone (finish is handled in GameFlow).
      */
-    public hitsAnyObstacle(activeObstacles: readonly Node[]): boolean {
+    public getOverlappingObstacleRoots(activeObstacles: readonly Node[]): Node[] {
         const selfBox = this.getWorldBounds();
         if (!selfBox) {
-            return false;
+            return [];
         }
+        const out: Node[] = [];
         for (const n of activeObstacles) {
             if (!n || !n.active) {
                 continue;
@@ -121,10 +122,18 @@ export class PlayerController extends Component {
                 continue;
             }
             if (selfBox.intersects(otherBox)) {
-                return true;
+                out.push(n);
             }
         }
-        return false;
+        return out;
+    }
+
+    /**
+     * Returns true if player AABB intersects any hazard node that has UITransform.
+     * Skips nodes with FinishZone (finish is handled in GameFlow).
+     */
+    public hitsAnyObstacle(activeObstacles: readonly Node[]): boolean {
+        return this.getOverlappingObstacleRoots(activeObstacles).length > 0;
     }
 
     public overlapsFinish(finishRoot: Node | null): boolean {

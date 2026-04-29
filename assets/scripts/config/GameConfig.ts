@@ -11,6 +11,9 @@ export const GameConfig = {
   /** Ground line local Y under GameRoot (synced to initial Player Y in Main.scene). */
   groundY: -336.8345,
 
+  /** Lives at run start; obstacle damage subtracts until game over at 0. */
+  startingHealth: 3,
+
   /** Upward velocity applied on jump (local units / s). */
   jumpVelocity: 780,
 

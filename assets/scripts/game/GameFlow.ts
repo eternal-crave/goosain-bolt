@@ -3,6 +3,7 @@ import { GameConfig } from '../config/GameConfig';
 import { CurrencySpawner } from '../currency/CurrencySpawner';
 import { CurrencyWallet } from '../currency/CurrencyWallet';
 import { PlayerController } from '../player/PlayerController';
+import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerVisualAnimator } from '../player/PlayerVisualAnimator';
 import { Spawner } from './Spawner';
 import { WorldScroll } from './WorldScroll';
@@ -33,6 +34,13 @@ export class GameFlow extends Component {
     @property(CurrencyWallet)
     public currencyWallet: CurrencyWallet | null = null;
 
+    @property({
+        type: PlayerHealth,
+        tooltip:
+            'Run HP (3 by default). If empty, first obstacle overlap still ends the run instantly. Wire HealthHud to the same component.',
+    })
+    public playerHealth: PlayerHealth | null = null;
+
     @property(Node)
     public tapToStart: Node | null = null;
 
@@ -62,6 +70,8 @@ export class GameFlow extends Component {
     private _runSpeed = 0;
     private _finishScheduled = false;
     private _graceTimer = 0;
+    /** Obstacle roots that already dealt damage for the current continuous overlap. */
+    private readonly _obstacleDamageClaimed = new Set<Node>();
 
     public onLoad(): void {
         input.on(Input.EventType.TOUCH_END, this._onTapMenu, this);
@@ -116,7 +126,25 @@ export class GameFlow extends Component {
         }
 
         if (this.player && this.spawner) {
-            if (this.player.hitsAnyObstacle(this.spawner.getActiveObstacles())) {
+            const activeObstacles = this.spawner.getActiveObstacles();
+            if (this.playerHealth) {
+                const overlapping = this.player.getOverlappingObstacleRoots(activeObstacles);
+                const overlappingSet = new Set(overlapping);
+                for (const n of this._obstacleDamageClaimed) {
+                    if (!overlappingSet.has(n) || !n.isValid) {
+                        this._obstacleDamageClaimed.delete(n);
+                    }
+                }
+                for (const n of overlapping) {
+                    if (!this._obstacleDamageClaimed.has(n)) {
+                        this._obstacleDamageClaimed.add(n);
+                        if (this.playerHealth.applyDamage(1)) {
+                            this._lose();
+                            return;
+                        }
+                    }
+                }
+            } else if (this.player.hitsAnyObstacle(activeObstacles)) {
                 this._lose();
                 return;
             }
@@ -152,6 +180,8 @@ export class GameFlow extends Component {
         this._runSpeed = this._calculateRunSpeed(0);
         this._finishScheduled = false;
         this._graceTimer = 0;
+        this._obstacleDamageClaimed.clear();
+        this.playerHealth?.reset();
         this.player?.resetForRun();
         this.spawner?.resetForNewRun();
         this.spawner?.setObstacleSpawning(true);
@@ -197,6 +227,8 @@ export class GameFlow extends Component {
         this.currencySpawner?.setMoneySpawning(false);
         this.currencySpawner?.resetForNewRun();
         this.currencyWallet?.reset();
+        this._obstacleDamageClaimed.clear();
+        this.playerHealth?.reset();
         if (this.player) {
             this.player.inputEnabled = false;
             this.player.resetForRun();
