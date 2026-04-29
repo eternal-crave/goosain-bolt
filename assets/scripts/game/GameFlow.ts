@@ -1,6 +1,7 @@
 import { _decorator, CCFloat, Component, EventTouch, input, Input, Label, Node } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { PlayerController } from '../player/PlayerController';
+import { PlayerVisualAnimator } from '../player/PlayerVisualAnimator';
 import { Spawner } from './Spawner';
 import { WorldScroll } from './WorldScroll';
 
@@ -77,6 +78,7 @@ export class GameFlow extends Component {
         }
         if (this.player) {
             this.player.inputEnabled = false;
+            this.player.stopPresentation();
         }
         this.scheduleOnce(() => this._restartToMenu(), 1.8);
     }
@@ -144,6 +146,7 @@ export class GameFlow extends Component {
         this.worldScroll?.setScrollSpeed(this._runSpeed);
         if (this.player) {
             this.player.inputEnabled = true;
+            this.player.node.getComponent(PlayerVisualAnimator)?.enterRunning();
         }
         this._setHudRunning();
     }
@@ -156,6 +159,7 @@ export class GameFlow extends Component {
         this._applyRunningAudioVisual(false);
         if (this.player) {
             this.player.inputEnabled = false;
+            this.player.stopPresentation();
         }
         if (this.labelGameOver) {
             this.labelGameOver.node.active = true;

@@ -1,6 +1,7 @@
 import { _decorator, CCFloat, Component, EventTouch, Input, Node, Rect, UITransform, Vec3, input } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { FinishZone } from '../finish/FinishZone';
+import { PlayerVisualAnimator } from './PlayerVisualAnimator';
 
 const { ccclass, property } = _decorator;
 
@@ -20,8 +21,13 @@ export class PlayerController extends Component {
 
     private _velY = 0;
     private _tmpPos = new Vec3();
+    private _visual: PlayerVisualAnimator | null = null;
 
     public onLoad(): void {
+        if (!this.node.getComponent(PlayerVisualAnimator)) {
+            this.node.addComponent(PlayerVisualAnimator);
+        }
+        this._visual = this.node.getComponent(PlayerVisualAnimator);
         input.on(Input.EventType.TOUCH_START, this._onTouchStart, this);
         this.resetForRun();
     }
@@ -35,19 +41,32 @@ export class PlayerController extends Component {
         this.inputEnabled = false;
         this._tmpPos.set(GameConfig.playerX, GameConfig.groundY, this.node.position.z);
         this.node.setPosition(this._tmpPos);
+        this._visual?.resetToIdle();
+    }
+
+    /** Stops run/jump/land clips without resetting position (win / lose). */
+    public stopPresentation(): void {
+        this._visual?.resetToIdle();
     }
 
     public update(dt: number): void {
         if (!this.inputEnabled) {
             return;
         }
-        this._velY -= this.gravity * dt;
         const p = this.node.position;
         const gy = GameConfig.groundY;
+        const eps = this.groundSnapEpsilon;
+        const groundedBefore = p.y <= gy + eps && this._velY <= 0;
+
+        this._velY -= this.gravity * dt;
         let ny = p.y + this._velY * dt;
         if (ny <= gy) {
             ny = gy;
             this._velY = 0;
+        }
+        const groundedAfter = ny <= gy + eps && this._velY <= 0;
+        if (!groundedBefore && groundedAfter) {
+            this._visual?.notifyLanded();
         }
         this.node.setPosition(p.x, ny, p.z);
     }
@@ -114,6 +133,7 @@ export class PlayerController extends Component {
         const grounded = p.y <= gy + this.groundSnapEpsilon && this._velY <= 0;
         if (grounded) {
             this._velY = this.jumpVelocity;
+            this._visual?.notifyJump();
         }
     }
 }
