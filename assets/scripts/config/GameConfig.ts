@@ -84,4 +84,24 @@ export const GameConfig = {
   ribbonIterations: 6,
   ribbonGravity: 980,
   ribbonDamping: 0.02,
+
+  /** Seconds between money cluster spawns (random in range). */
+  moneySpawnIntervalMin: 1.8,
+  moneySpawnIntervalMax: 2.8,
+
+  /** Bills per cluster (inclusive). */
+  moneyBillsMin: 2,
+  moneyBillsMax: 4,
+
+  /** Minimum center-to-center X between bills; size-based spacing can exceed this. */
+  moneyStepX: 144,
+
+  /** Vertical layout amplitude for chevron / zigzag (local Y). */
+  moneyLayoutAmplitude: 200,
+
+  /** Local Y of cluster baseline above money parent origin (same space as obstacles if parent shared). */
+  moneyBaselineLocalY: 140,
+
+  /** Prewarmed instances per money prefab variant. */
+  moneyPoolSizePerPrefab: 8,
 } as const;

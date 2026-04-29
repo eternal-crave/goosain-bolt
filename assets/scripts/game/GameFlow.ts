@@ -1,5 +1,7 @@
 import { _decorator, CCFloat, Component, EventTouch, input, Input, Label, Node } from 'cc';
 import { GameConfig } from '../config/GameConfig';
+import { CurrencySpawner } from '../currency/CurrencySpawner';
+import { CurrencyWallet } from '../currency/CurrencyWallet';
 import { PlayerController } from '../player/PlayerController';
 import { PlayerVisualAnimator } from '../player/PlayerVisualAnimator';
 import { Spawner } from './Spawner';
@@ -24,6 +26,12 @@ export class GameFlow extends Component {
 
     @property(WorldScroll)
     public worldScroll: WorldScroll | null = null;
+
+    @property(CurrencySpawner)
+    public currencySpawner: CurrencySpawner | null = null;
+
+    @property(CurrencyWallet)
+    public currencyWallet: CurrencyWallet | null = null;
 
     @property(Node)
     public tapToStart: Node | null = null;
@@ -69,6 +77,7 @@ export class GameFlow extends Component {
             return;
         }
         this._state = RunState.Won;
+        this.currencySpawner?.setMoneySpawning(false);
         this._applyRunningAudioVisual(false);
         if (this.labelWin) {
             this.labelWin.node.active = true;
@@ -89,6 +98,7 @@ export class GameFlow extends Component {
         }
         this._runSpeed = this._calculateRunSpeed(this._distance);
         this.spawner?.setRunSpeed(this._runSpeed);
+        this.currencySpawner?.setRunSpeed(this._runSpeed);
         this.worldScroll?.setScrollSpeed(this._runSpeed);
         this._distance += this._runSpeed * dt;
 
@@ -113,6 +123,9 @@ export class GameFlow extends Component {
             const finish = this.spawner.getFinishNode();
             if (finish && this.player.overlapsFinish(finish)) {
                 this.notifyWin();
+            }
+            if (this._state === RunState.Running) {
+                this.currencySpawner?.processCollection(this.player, this.currencyWallet);
             }
         }
     }
@@ -143,6 +156,10 @@ export class GameFlow extends Component {
         this.spawner?.resetForNewRun();
         this.spawner?.setObstacleSpawning(true);
         this.spawner?.setRunSpeed(this._runSpeed);
+        this.currencyWallet?.reset();
+        this.currencySpawner?.resetForNewRun();
+        this.currencySpawner?.setMoneySpawning(true);
+        this.currencySpawner?.setRunSpeed(this._runSpeed);
         this.worldScroll?.setScrollSpeed(this._runSpeed);
         if (this.player) {
             this.player.inputEnabled = true;
@@ -156,6 +173,7 @@ export class GameFlow extends Component {
             return;
         }
         this._state = RunState.Lost;
+        this.currencySpawner?.setMoneySpawning(false);
         this._applyRunningAudioVisual(false);
         if (this.player) {
             this.player.inputEnabled = false;
@@ -176,6 +194,9 @@ export class GameFlow extends Component {
         this._finishScheduled = false;
         this.spawner?.setObstacleSpawning(false);
         this.spawner?.resetForNewRun();
+        this.currencySpawner?.setMoneySpawning(false);
+        this.currencySpawner?.resetForNewRun();
+        this.currencyWallet?.reset();
         if (this.player) {
             this.player.inputEnabled = false;
             this.player.resetForRun();
