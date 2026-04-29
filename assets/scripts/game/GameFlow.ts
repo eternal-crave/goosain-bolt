@@ -71,8 +71,8 @@ export class GameFlow extends Component {
     private _runSpeed = 0;
     private _finishScheduled = false;
     private _graceTimer = 0;
-    /** After a loss, keep LosePanel visible on the menu until the next run starts. */
-    private _losePanelPinned = false;
+    /** After a loss, keep GameEndPanel visible on the menu until the next run starts. */
+    private _gameEndPanelPinned = false;
     /** Obstacle roots that already dealt damage for the current continuous overlap. */
     private readonly _obstacleDamageClaimed = new Set<Node>();
 
@@ -170,7 +170,7 @@ export class GameFlow extends Component {
     }
 
     private _ensureLoseUi(): void {
-        const panel = find('Canvas/HUD/LosePanel');
+        const panel = find('Canvas/HUD/GameEndPanel');
         if (!panel) {
             return;
         }
@@ -210,7 +210,7 @@ export class GameFlow extends Component {
     }
 
     private _beginRun(): void {
-        this._losePanelPinned = false;
+        this._gameEndPanelPinned = false;
         this._state = RunState.Running;
         this.spawner?.setOffscreenRecyclingEnabled(true);
         this.currencySpawner?.setOffscreenRecyclingEnabled(true);
@@ -241,7 +241,7 @@ export class GameFlow extends Component {
             return;
         }
         this._state = RunState.Lost;
-        this._losePanelPinned = true;
+        this._gameEndPanelPinned = true;
 
         this._ensureLoseUi();
         if (this.loseUi) {
@@ -292,7 +292,7 @@ export class GameFlow extends Component {
         if (this.labelWin) {
             this.labelWin.node.active = false;
         }
-        if (this.loseUi && !this._losePanelPinned) {
+        if (this.loseUi && !this._gameEndPanelPinned) {
             this.loseUi.node.active = false;
         }
     }

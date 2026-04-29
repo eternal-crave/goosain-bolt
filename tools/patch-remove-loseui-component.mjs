@@ -43,12 +43,12 @@ function renumberRefs(obj, threshold) {
 
 const THRESHOLD = 84;
 
-const losePanel = arr[81];
-if (!losePanel || losePanel.__type__ !== 'cc.Node' || losePanel._name !== 'LosePanel') {
-  console.error('Expected LosePanel at index 81');
+const gameEndPanel = arr[81];
+if (!gameEndPanel || gameEndPanel.__type__ !== 'cc.Node' || gameEndPanel._name !== 'GameEndPanel') {
+  console.error('Expected GameEndPanel at index 81');
   process.exit(1);
 }
-losePanel._components = losePanel._components.filter((c) => c.__id__ !== THRESHOLD);
+gameEndPanel._components = gameEndPanel._components.filter((c) => c.__id__ !== THRESHOLD);
 
 const gameFlow = arr[42];
 if (!gameFlow || gameFlow.__type__ !== 'f97e8Pez6hBn5u/NcZ4OIxM') {

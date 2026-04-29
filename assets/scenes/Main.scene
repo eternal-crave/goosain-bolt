@@ -2401,7 +2401,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "LosePanel",
+    "_name": "GameEndPanel",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -2468,7 +2468,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "LoseTitle",
+    "_name": "Title",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -2600,7 +2600,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "LoseSubtitle",
+    "_name": "Subtitle",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -2954,7 +2954,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "LoseCardAmount",
+    "_name": "CardAmount",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {

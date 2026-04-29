@@ -74,7 +74,7 @@ export class LoseUi extends Component {
 
     @property({
         type: Node,
-        tooltip: 'Optional child on LosePanel: spins while the panel is open; leave empty to skip.',
+        tooltip: 'Optional child on GameEndPanel: spins while the panel is open; leave empty to skip.',
     })
     public rotateWhileOpenTarget: Node | null = null;
 
