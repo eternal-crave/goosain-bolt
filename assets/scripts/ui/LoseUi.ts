@@ -1,4 +1,5 @@
 import { _decorator, CCFloat, Component, Label, Node, Tween, tween, UIOpacity, Vec3 } from 'cc';
+import { GameConfig } from '../config/GameConfig';
 import { CurrencyWallet } from '../currency/CurrencyWallet';
 
 const { ccclass, property } = _decorator;
@@ -86,6 +87,15 @@ export class LoseUi extends Component {
     public rotateWhileOpenDegreesPerSecond = 120;
 
     private _ctaBaseScale = new Vec3(1, 1, 1);
+
+    public applyRunEnd(isWin: boolean): void {
+        if (this.labelTitle) {
+            this.labelTitle.string = isWin ? GameConfig.gameEndWinTitle : GameConfig.gameEndLoseTitle;
+        }
+        if (this.labelSubtitle) {
+            this.labelSubtitle.string = isWin ? GameConfig.gameEndWinSubtitle : GameConfig.gameEndLoseSubtitle;
+        }
+    }
 
     public onEnable(): void {
         this.wallet?.onBalanceChanged(this._syncAmountLabels, this);

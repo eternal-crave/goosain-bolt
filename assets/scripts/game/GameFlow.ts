@@ -71,7 +71,7 @@ export class GameFlow extends Component {
     private _runSpeed = 0;
     private _finishScheduled = false;
     private _graceTimer = 0;
-    /** After a loss, keep GameEndPanel visible on the menu until the next run starts. */
+    /** After a loss or win, keep GameEndPanel visible until the player taps to return to menu / start again. */
     private _gameEndPanelPinned = false;
     /** Obstacle roots that already dealt damage for the current continuous overlap. */
     private readonly _obstacleDamageClaimed = new Set<Node>();
@@ -94,6 +94,7 @@ export class GameFlow extends Component {
             return;
         }
         this._state = RunState.Won;
+        this._gameEndPanelPinned = true;
         this.spawner?.setObstacleSpawning(false);
         this.spawner?.setOffscreenRecyclingEnabled(false);
         this.currencySpawner?.setOffscreenRecyclingEnabled(false);
@@ -101,16 +102,17 @@ export class GameFlow extends Component {
         this.currencySpawner?.setMoneySpawning(false);
         this._applyRunningAudioVisual(false);
         if (this.labelWin) {
-            this.labelWin.node.active = true;
+            this.labelWin.node.active = false;
         }
+        this._ensureLoseUi();
         if (this.loseUi) {
-            this.loseUi.node.active = false;
+            this.loseUi.applyRunEnd(true);
+            this.loseUi.node.active = true;
         }
         if (this.player) {
             this.player.inputEnabled = false;
             this.player.stopPresentation();
         }
-        this.scheduleOnce(() => this._restartToMenu(), 1.8);
     }
 
     public update(dt: number): void {
@@ -190,7 +192,7 @@ export class GameFlow extends Component {
     }
 
     private _onTapMenu(_e: EventTouch): void {
-        if (this._state === RunState.Lost) {
+        if (this._state === RunState.Lost || this._state === RunState.Won) {
             this._restartToMenu();
             return;
         }
@@ -245,6 +247,7 @@ export class GameFlow extends Component {
 
         this._ensureLoseUi();
         if (this.loseUi) {
+            this.loseUi.applyRunEnd(false);
             this.loseUi.node.active = true;
         }
         if (this.labelWin) {

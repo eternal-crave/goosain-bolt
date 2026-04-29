@@ -30,6 +30,18 @@ export const GameConfig = {
   /** Distance (abstract) before finish sequence starts. */
   distanceToFinish: 8000,
 
+  /** GameEnd panel title after crossing the finish ribbon. */
+  gameEndWinTitle: 'You made it!',
+
+  /** GameEnd panel subtitle after a win. */
+  gameEndWinSubtitle: 'Tap to continue.',
+
+  /** GameEnd panel title after running out of health. */
+  gameEndLoseTitle: 'Run over',
+
+  /** GameEnd panel subtitle after a loss. */
+  gameEndLoseSubtitle: 'Tap to try again.',
+
   /** Seconds without new obstacles after finish spawns. */
   obstacleGraceAfterFinish: 2.4,
 
