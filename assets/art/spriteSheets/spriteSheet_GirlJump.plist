@@ -4,48 +4,48 @@
     <dict>
         <key>frames</key>
         <dict>
-            <key>spriteSheet_Girl-0.png</key>
+            <key>spriteSheet_Girl_Jump-0.png</key>
             <dict>
                 <key>aliases</key>
                 <array/>
                 <key>spriteOffset</key>
                 <string>{0,0}</string>
                 <key>spriteSize</key>
-                <string>{158,240}</string>
+                <string>{129,251}</string>
                 <key>spriteSourceSize</key>
-                <string>{158,240}</string>
+                <string>{129,251}</string>
                 <key>textureRect</key>
-                <string>{{285,1},{158,240}}</string>
+                <string>{{1,1},{129,251}}</string>
                 <key>textureRotated</key>
                 <false/>
             </dict>
-            <key>spriteSheet_Girl-1.png</key>
+            <key>spriteSheet_Girl_Jump-1.png</key>
             <dict>
                 <key>aliases</key>
                 <array/>
                 <key>spriteOffset</key>
-                <string>{0,0}</string>
+                <string>{0,2}</string>
                 <key>spriteSize</key>
-                <string>{147,244}</string>
+                <string>{129,247}</string>
                 <key>spriteSourceSize</key>
-                <string>{147,244}</string>
+                <string>{129,251}</string>
                 <key>textureRect</key>
-                <string>{{136,1},{147,244}}</string>
+                <string>{{132,1},{129,247}}</string>
                 <key>textureRotated</key>
                 <false/>
             </dict>
-            <key>spriteSheet_Girl-2.png</key>
+            <key>spriteSheet_Girl_Jump-2.png</key>
             <dict>
                 <key>aliases</key>
                 <array/>
                 <key>spriteOffset</key>
-                <string>{0,0}</string>
+                <string>{0,4}</string>
                 <key>spriteSize</key>
-                <string>{133,246}</string>
+                <string>{129,243}</string>
                 <key>spriteSourceSize</key>
-                <string>{133,246}</string>
+                <string>{129,251}</string>
                 <key>textureRect</key>
-                <string>{{1,1},{133,246}}</string>
+                <string>{{263,1},{129,243}}</string>
                 <key>textureRotated</key>
                 <false/>
             </dict>
@@ -59,13 +59,13 @@
             <key>premultiplyAlpha</key>
             <false/>
             <key>realTextureFileName</key>
-            <string>spriteSheet_Boy.png</string>
+            <string>girlJump.png</string>
             <key>size</key>
-            <string>{444,248}</string>
+            <string>{393,253}</string>
             <key>smartupdate</key>
-            <string>$TexturePacker:SmartUpdate:e01423c7398c21987196811e9cb0b608:04d698719e1e8d30b4bd8dab368b08c9:75811bb9e15856f5fd265c7b4c224292$</string>
+            <string>$TexturePacker:SmartUpdate:ce9fde8e38e093485e2f7448ea3602f2:2f69233272991166bda86e87fd8ec3e8:0233176acaeb4b6b10aea6b6ffc653df$</string>
             <key>textureFileName</key>
-            <string>spriteSheet_Boy.png</string>
+            <string>girlJump.png</string>
         </dict>
     </dict>
 </plist>

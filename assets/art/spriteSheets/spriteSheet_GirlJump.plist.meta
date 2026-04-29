@@ -2,109 +2,17 @@
   "ver": "1.0.8",
   "importer": "sprite-atlas",
   "imported": true,
-  "uuid": "79467fef-354d-4b01-aaef-772131f1b8bb",
+  "uuid": "bd25c536-8dfa-4b08-b9f8-fcd89a6c6a65",
   "files": [
     ".json"
   ],
   "subMetas": {
-    "3b9fa": {
+    "da754": {
       "importer": "sprite-frame",
-      "uuid": "79467fef-354d-4b01-aaef-772131f1b8bb@3b9fa",
+      "uuid": "bd25c536-8dfa-4b08-b9f8-fcd89a6c6a65@da754",
       "displayName": "",
-      "id": "3b9fa",
-      "name": "spriteSheet_Girl-0",
-      "userData": {
-        "trimThreshold": 1,
-        "rotated": false,
-        "offsetX": 0,
-        "offsetY": 0,
-        "trimX": 285,
-        "trimY": 1,
-        "width": 158,
-        "height": 240,
-        "rawWidth": 158,
-        "rawHeight": 240,
-        "borderTop": 0,
-        "borderBottom": 0,
-        "borderLeft": 0,
-        "borderRight": 0,
-        "packable": true,
-        "pixelsToUnit": 100,
-        "pivotX": 0.5,
-        "pivotY": 0.5,
-        "meshType": 0,
-        "vertices": {
-          "rawPosition": [],
-          "indexes": [],
-          "uv": [],
-          "nuv": [],
-          "minPos": [],
-          "maxPos": []
-        },
-        "isUuid": true,
-        "imageUuidOrDatabaseUri": "2e1adb35-3488-4866-887c-3ff4f3fab58c@6c48a",
-        "atlasUuid": "79467fef-354d-4b01-aaef-772131f1b8bb",
-        "trimType": "auto"
-      },
-      "ver": "1.0.12",
-      "imported": true,
-      "files": [
-        ".json"
-      ],
-      "subMetas": {}
-    },
-    "1f231": {
-      "importer": "sprite-frame",
-      "uuid": "79467fef-354d-4b01-aaef-772131f1b8bb@1f231",
-      "displayName": "",
-      "id": "1f231",
-      "name": "spriteSheet_Girl-1",
-      "userData": {
-        "trimThreshold": 1,
-        "rotated": false,
-        "offsetX": 0,
-        "offsetY": 0,
-        "trimX": 136,
-        "trimY": 1,
-        "width": 147,
-        "height": 244,
-        "rawWidth": 147,
-        "rawHeight": 244,
-        "borderTop": 0,
-        "borderBottom": 0,
-        "borderLeft": 0,
-        "borderRight": 0,
-        "packable": true,
-        "pixelsToUnit": 100,
-        "pivotX": 0.5,
-        "pivotY": 0.5,
-        "meshType": 0,
-        "vertices": {
-          "rawPosition": [],
-          "indexes": [],
-          "uv": [],
-          "nuv": [],
-          "minPos": [],
-          "maxPos": []
-        },
-        "isUuid": true,
-        "imageUuidOrDatabaseUri": "2e1adb35-3488-4866-887c-3ff4f3fab58c@6c48a",
-        "atlasUuid": "79467fef-354d-4b01-aaef-772131f1b8bb",
-        "trimType": "auto"
-      },
-      "ver": "1.0.12",
-      "imported": true,
-      "files": [
-        ".json"
-      ],
-      "subMetas": {}
-    },
-    "204db": {
-      "importer": "sprite-frame",
-      "uuid": "79467fef-354d-4b01-aaef-772131f1b8bb@204db",
-      "displayName": "",
-      "id": "204db",
-      "name": "spriteSheet_Girl-2",
+      "id": "da754",
+      "name": "spriteSheet_Girl_Jump-0",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
@@ -112,10 +20,10 @@
         "offsetY": 0,
         "trimX": 1,
         "trimY": 1,
-        "width": 133,
-        "height": 246,
-        "rawWidth": 133,
-        "rawHeight": 246,
+        "width": 129,
+        "height": 251,
+        "rawWidth": 129,
+        "rawHeight": 251,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -134,8 +42,100 @@
           "maxPos": []
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "2e1adb35-3488-4866-887c-3ff4f3fab58c@6c48a",
-        "atlasUuid": "79467fef-354d-4b01-aaef-772131f1b8bb",
+        "imageUuidOrDatabaseUri": "b7c6140f-a191-442b-adad-a09d9d2fab2a@6c48a",
+        "atlasUuid": "bd25c536-8dfa-4b08-b9f8-fcd89a6c6a65",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "69ed3": {
+      "importer": "sprite-frame",
+      "uuid": "bd25c536-8dfa-4b08-b9f8-fcd89a6c6a65@69ed3",
+      "displayName": "",
+      "id": "69ed3",
+      "name": "spriteSheet_Girl_Jump-1",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": 2,
+        "trimX": 132,
+        "trimY": 1,
+        "width": 129,
+        "height": 247,
+        "rawWidth": 129,
+        "rawHeight": 251,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [],
+          "indexes": [],
+          "uv": [],
+          "nuv": [],
+          "minPos": [],
+          "maxPos": []
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "b7c6140f-a191-442b-adad-a09d9d2fab2a@6c48a",
+        "atlasUuid": "bd25c536-8dfa-4b08-b9f8-fcd89a6c6a65",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "d0339": {
+      "importer": "sprite-frame",
+      "uuid": "bd25c536-8dfa-4b08-b9f8-fcd89a6c6a65@d0339",
+      "displayName": "",
+      "id": "d0339",
+      "name": "spriteSheet_Girl_Jump-2",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": 4,
+        "trimX": 263,
+        "trimY": 1,
+        "width": 129,
+        "height": 243,
+        "rawWidth": 129,
+        "rawHeight": 251,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [],
+          "indexes": [],
+          "uv": [],
+          "nuv": [],
+          "minPos": [],
+          "maxPos": []
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "b7c6140f-a191-442b-adad-a09d9d2fab2a@6c48a",
+        "atlasUuid": "bd25c536-8dfa-4b08-b9f8-fcd89a6c6a65",
         "trimType": "auto"
       },
       "ver": "1.0.12",
@@ -147,9 +147,9 @@
     }
   },
   "userData": {
-    "atlasTextureName": "spriteSheet_Boy.png",
+    "atlasTextureName": "girlJump.png",
     "format": 3,
-    "uuid": "79467fef-354d-4b01-aaef-772131f1b8bb",
-    "textureUuid": "2e1adb35-3488-4866-887c-3ff4f3fab58c@6c48a"
+    "uuid": "bd25c536-8dfa-4b08-b9f8-fcd89a6c6a65",
+    "textureUuid": "b7c6140f-a191-442b-adad-a09d9d2fab2a@6c48a"
   }
 }
