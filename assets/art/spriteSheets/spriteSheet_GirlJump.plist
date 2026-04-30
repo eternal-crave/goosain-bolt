@@ -59,13 +59,13 @@
             <key>premultiplyAlpha</key>
             <false/>
             <key>realTextureFileName</key>
-            <string>girlJump.png</string>
+            <string>spriteSheet_GirlJump.png</string>
             <key>size</key>
             <string>{393,253}</string>
             <key>smartupdate</key>
-            <string>$TexturePacker:SmartUpdate:ce9fde8e38e093485e2f7448ea3602f2:2f69233272991166bda86e87fd8ec3e8:0233176acaeb4b6b10aea6b6ffc653df$</string>
+            <string>$TexturePacker:SmartUpdate:b7e79d4d893c4a780534707f3e0e238a:2f69233272991166bda86e87fd8ec3e8:e3b5e20e1a18a19b4ad153a653b52900$</string>
             <key>textureFileName</key>
-            <string>girlJump.png</string>
+            <string>spriteSheet_GirlJump.png</string>
         </dict>
     </dict>
 </plist>

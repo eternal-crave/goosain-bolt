@@ -147,7 +147,7 @@
     }
   },
   "userData": {
-    "atlasTextureName": "girlJump.png",
+    "atlasTextureName": "spriteSheet_GirlJump.png",
     "format": 3,
     "uuid": "bd25c536-8dfa-4b08-b9f8-fcd89a6c6a65",
     "textureUuid": "b7c6140f-a191-442b-adad-a09d9d2fab2a@6c48a"
