@@ -3,7 +3,7 @@
  */
 export const GameConfig = {
   designWidth: 1080,
-  designHeight: 1920,
+  designHeight: 2400,
 
   /** Player anchor X (fixed while side-scrolling, local under GameRoot). */
   playerX: -320,

@@ -5017,14 +5017,11 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "canvas": {
-      "__id__": 131
+    "cameraComp": {
+      "__id__": 4
     },
-    "layoutRoot": null,
     "designWidth": 1080,
     "designHeight": 1920,
-    "minScale": 0.82,
-    "maxScale": 1.12,
     "_id": "a2aRgNwGdIDJX2BwEyVYpl"
   },
   {

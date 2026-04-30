@@ -1,35 +1,44 @@
-import { _decorator, Canvas, CCFloat, Component, Node, UITransform, view, View } from 'cc';
+import {
+    _decorator,
+    Camera,
+    CCFloat,
+    Component,
+    ResolutionPolicy,
+    Size,
+    view,
+} from 'cc';
 
 const { ccclass, property } = _decorator;
 
 /**
- * Keeps a design-sized layout root scaled on very wide or tall viewports.
- * Primary fit policy should still be set on the Canvas in the editor.
+ * Attaches to the Canvas node and enforces full-screen viewport adaptation
+ * at startup and whenever the browser window / device orientation changes.
+ *
+ * Responsibilities:
+ *  - Calls view.resizeWithBrowserSize(true) so the HTML canvas element always
+ *    tracks the browser window size.
+ *  - Calls view.setResolutionPolicy(ResolutionPolicy.FIXED_HEIGHT) so game
+ *    content fills the full screen height and adapts width to any aspect ratio.
+ *  - Syncs the orthographic camera's orthoHeight to the current visible height
+ *    so world-space units stay consistent after a resize.
+ *  - Emits 'viewport-changed' on this node with the current Size so any sibling
+ *    or child component can subscribe without coupling to view directly.
  */
 @ccclass('ResponsiveCanvas')
 export class ResponsiveCanvas extends Component {
-    @property(Canvas)
-    public canvas: Canvas | null = null;
+    @property({ type: Camera, tooltip: 'Scene camera whose orthoHeight will be kept in sync with the visible height.' })
+    public cameraComp: Camera | null = null;
 
-    @property(Node)
-    public layoutRoot: Node | null = null;
-
-    @property({ type: CCFloat, tooltip: 'Design width matching Canvas design resolution' })
+    @property({ type: CCFloat, tooltip: 'Design width used as reference for the horizontal axis.' })
     public designWidth = 1080;
 
-    @property({ type: CCFloat, tooltip: 'Design height matching Canvas design resolution' })
-    public designHeight = 1920;
+    @property({ type: CCFloat, tooltip: 'Design height used as reference for the vertical axis.' })
+    public designHeight = 2400;
 
-    @property({ type: CCFloat, tooltip: 'Clamp scale so UI never shrinks below this factor' })
-    public minScale = 0.82;
-
-    @property({ type: CCFloat, tooltip: 'Clamp scale so UI never grows above this factor' })
-    public maxScale = 1.12;
+    // ─── Lifecycle ────────────────────────────────────────────────────────────
 
     public onLoad(): void {
-        if (!this.canvas) {
-            this.canvas = this.getComponent(Canvas);
-        }
+        this._applyResolutionPolicy();
         view.on('canvas-resize', this._onResize, this);
         this._onResize();
     }
@@ -38,23 +47,27 @@ export class ResponsiveCanvas extends Component {
         view.off('canvas-resize', this._onResize, this);
     }
 
+    // ─── Private ──────────────────────────────────────────────────────────────
+
+    private _applyResolutionPolicy(): void {
+        view.resizeWithBrowserSize(true);
+        view.setResolutionPolicy(ResolutionPolicy.FIXED_HEIGHT);
+    }
+
     private _onResize(): void {
-        const root = this.layoutRoot;
-        if (!root) {
-            return;
-        }
-        const vs = View.instance.getVisibleSize();
+        const vs = view.getVisibleSize();
         if (vs.width <= 0 || vs.height <= 0) {
             return;
         }
-        const sx = vs.width / this.designWidth;
-        const sy = vs.height / this.designHeight;
-        let s = Math.min(sx, sy);
-        s = Math.min(this.maxScale, Math.max(this.minScale, s));
-        root.setScale(s, s, 1);
-        const ui = root.getComponent(UITransform);
-        if (ui) {
-            ui.setContentSize(this.designWidth, this.designHeight);
+
+        this._syncCameraOrthoHeight(vs);
+        this.node.emit('viewport-changed', vs);
+    }
+
+    private _syncCameraOrthoHeight(vs: Size): void {
+        if (!this.cameraComp) {
+            return;
         }
+        this.cameraComp.orthoHeight = vs.height / 2;
     }
 }
