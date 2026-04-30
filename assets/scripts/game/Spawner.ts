@@ -1,4 +1,4 @@
-import { _decorator, Canvas, Component, instantiate, Node, Prefab, randomRange, Vec3, view, View } from 'cc';
+import { _decorator, Canvas, Component, instantiate, Node, Prefab, randomRange, Vec3, view } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { FinishZone } from '../finish/FinishZone';
 import { Obstacle } from './Obstacle';
@@ -36,7 +36,6 @@ export class Spawner extends Component {
     private _canvas: Canvas | null = null;
     private readonly _screenProbe = new Vec3();
     private readonly _worldProbe = new Vec3();
-
     public onLoad(): void {
         if (this.obstaclePrefab && this.obstacleParent) {
             this._pool = new ObjectPool(this.obstaclePrefab, this.obstacleParent, GameConfig.poolSize);
@@ -168,18 +167,23 @@ export class Spawner extends Component {
             this._dynamicRecycleX = GameConfig.recycleX;
             return;
         }
-        const visible = View.instance.getVisibleSize();
-        if (visible.width <= 0) {
-            this._dynamicRecycleX = GameConfig.recycleX;
-            return;
-        }
         const scaleX = this.obstacleParent.worldScale.x;
         if (Math.abs(scaleX) <= 1e-5) {
             this._dynamicRecycleX = GameConfig.recycleX;
             return;
         }
+        const canvas = this._getCanvas();
+        const camera = canvas?.cameraComponent;
+        let leftEdgeWorldX: number;
+        if (camera) {
+            const frame = view.getFrameSize();
+            this._screenProbe.set(0, frame.height * 0.5, 0);
+            camera.screenToWorld(this._screenProbe, this._worldProbe);
+            leftEdgeWorldX = this._worldProbe.x;
+        } else {
+            leftEdgeWorldX = -GameConfig.designWidth * 0.5;
+        }
         const parentWorldX = this.obstacleParent.worldPosition.x;
-        const leftEdgeWorldX = -visible.width * 0.5;
         const recycleWorldX = leftEdgeWorldX - GameConfig.recycleViewportMargin;
         this._dynamicRecycleX = (recycleWorldX - parentWorldX) / scaleX;
     }
@@ -199,7 +203,7 @@ export class Spawner extends Component {
         const y = this._getObstacleSpawnBaseY() + jitter;
         const node = pool.get();
         this._nodeToPool.set(node, pool);
-        const spawnX = this._computeSpawnLocalX(GameConfig.obstacleSpawnViewportMargin);
+        const spawnX = this._computeSpawnLocalX(GameConfig.spawnEdgeOffset);
         node.setPosition(spawnX, y, 0);
         const o = node.getComponent(Obstacle) ?? node.addComponent(Obstacle);
         o.moveSpeed = this._runSpeed;
@@ -232,13 +236,12 @@ export class Spawner extends Component {
         const canvas = this._getCanvas();
         const camera = canvas?.cameraComponent;
         if (camera) {
-            const visible = view.getVisibleSize();
-            this._screenProbe.set(visible.width, visible.height * 0.5, 0);
+            const frame = view.getFrameSize();
+            this._screenProbe.set(frame.width, frame.height * 0.5, 0);
             camera.screenToWorld(this._screenProbe, this._worldProbe);
             return this._worldProbe.x;
         }
-        const visible = view.getVisibleSize();
-        return visible.width * 0.5;
+        return GameConfig.designWidth * 0.5;
     }
 
     private _worldXToParentLocalX(worldX: number, parent: Node): number {

@@ -1869,7 +1869,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 334.65,
-      "y": -592.134,
+      "y": -534.248,
       "z": 0
     },
     "_lrot": {
@@ -3709,7 +3709,7 @@
         "__id__": 117
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 123
@@ -3785,8 +3785,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 8.6,
-      "y": 16.8,
+      "x": 100,
+      "y": 100,
       "z": 1
     },
     "_mobility": 0,
@@ -5017,14 +5017,11 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "canvas": {
-      "__id__": 131
+    "cameraComp": {
+      "__id__": 4
     },
-    "layoutRoot": null,
     "designWidth": 1080,
-    "designHeight": 1920,
-    "minScale": 0.82,
-    "maxScale": 1.12,
+    "designHeight": 2400,
     "_id": "a2aRgNwGdIDJX2BwEyVYpl"
   },
   {

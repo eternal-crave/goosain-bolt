@@ -12,7 +12,7 @@
             "_value": true
           },
           "gfx-webgl2": {
-            "_value": true
+            "_value": false
           },
           "gfx-webgpu": {
             "_value": false
@@ -178,13 +178,13 @@
           },
           "render-pipeline": {
             "_value": true,
-            "_option": "custom-pipeline"
+            "_option": "legacy-pipeline"
           },
           "custom-pipeline": {
-            "_value": true
+            "_value": false
           },
           "legacy-pipeline": {
-            "_value": false
+            "_value": true
           },
           "xr": {
             "_value": false
@@ -196,9 +196,8 @@
           "animation",
           "audio",
           "base",
-          "custom-pipeline",
+          "legacy-pipeline",
           "gfx-webgl",
-          "gfx-webgl2",
           "graphics",
           "intersection-2d",
           "mask",
