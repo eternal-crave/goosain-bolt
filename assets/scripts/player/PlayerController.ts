@@ -147,13 +147,11 @@ export class PlayerController extends Component {
         if (!selfBox) {
             return false;
         }
-        const ui =
-            finishRoot.getComponent(UITransform) ??
-            finishRoot.getComponentInChildren(UITransform);
-        if (!ui) {
-            return false;
-        }
-        return selfBox.intersects(ui.getBoundingBoxToWorld());
+        // Use the finish root's world X as the crossing line (the rope hangs at X=0 in the prefab).
+        // Triggers the moment the finish centre scrolls past the player's right edge — independent of
+        // how the prefab's child UITransforms are arranged, avoiding premature triggers from offset
+        // cone or post nodes.
+        return finishRoot.worldPosition.x <= selfBox.xMax;
     }
 
     private _onTouchStart(_e: EventTouch): void {

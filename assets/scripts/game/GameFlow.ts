@@ -7,6 +7,7 @@ import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerVisualAnimator } from '../player/PlayerVisualAnimator';
 import { LoseUi } from '../ui/LoseUi';
 import { FinishRibbon } from '../finish/FinishRibbon';
+import { FinishRope } from '../finish/FinishRope';
 import { Spawner } from './Spawner';
 import { WorldScroll } from './WorldScroll';
 
@@ -166,6 +167,7 @@ export class GameFlow extends Component {
             const finish = this.spawner.getFinishNode();
             if (finish && this.player.overlapsFinish(finish)) {
                 finish.getComponent(FinishRibbon)?.playSplit();
+                finish.getComponent(FinishRope)?.playSplit();
                 this.notifyWin();
             }
             if (this._state === RunState.Running) {
