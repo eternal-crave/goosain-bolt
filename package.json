@@ -8,7 +8,6 @@
     "fetch:playbox-raw": "node tools/fetch-playbox-raw.mjs",
     "extract:playbox": "node tools/fetch-playbox-raw.mjs && node tools/extract-data-urls-from-html.mjs temp/playable-raw.html assets/reference-playbox --clean",
     "extract:har": "node tools/extract-har-assets.mjs",
-    "pack:playable": "node tools/playable-pack.mjs --input build/web-mobile --output dist/playable.html",
     "lint": "eslint . --no-error-on-unmatched-pattern",
     "lint:fix": "eslint . --fix --no-error-on-unmatched-pattern",
     "format": "prettier --write .",
