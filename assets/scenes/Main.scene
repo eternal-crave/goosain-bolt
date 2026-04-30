@@ -1869,7 +1869,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 334.65,
-      "y": -592.134,
+      "y": -534.248,
       "z": 0
     },
     "_lrot": {
@@ -5021,7 +5021,7 @@
       "__id__": 4
     },
     "designWidth": 1080,
-    "designHeight": 1920,
+    "designHeight": 2400,
     "_id": "a2aRgNwGdIDJX2BwEyVYpl"
   },
   {

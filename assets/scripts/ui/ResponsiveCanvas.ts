@@ -17,8 +17,10 @@ const { ccclass, property } = _decorator;
  * Responsibilities:
  *  - Calls view.resizeWithBrowserSize(true) so the HTML canvas element always
  *    tracks the browser window size.
- *  - Calls view.setResolutionPolicy(ResolutionPolicy.FIXED_HEIGHT) so game
- *    content fills the full screen height and adapts width to any aspect ratio.
+ *  - Calls view.setResolutionPolicy(ResolutionPolicy.NO_BORDER) so the game
+ *    always fills the entire viewport with no black bars or grey margins,
+ *    cropping a small amount of content on extreme aspect ratios rather than
+ *    leaving empty space — the standard approach for playable ads.
  *  - Syncs the orthographic camera's orthoHeight to the current visible height
  *    so world-space units stay consistent after a resize.
  *  - Emits 'viewport-changed' on this node with the current Size so any sibling
@@ -51,7 +53,7 @@ export class ResponsiveCanvas extends Component {
 
     private _applyResolutionPolicy(): void {
         view.resizeWithBrowserSize(true);
-        view.setResolutionPolicy(ResolutionPolicy.FIXED_HEIGHT);
+        view.setResolutionPolicy(ResolutionPolicy.NO_BORDER);
     }
 
     private _onResize(): void {

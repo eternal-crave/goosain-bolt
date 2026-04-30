@@ -28,7 +28,7 @@ export const GameConfig = {
   maxRunSpeed: 720,
 
   /** Distance (abstract) before finish sequence starts. */
-  distanceToFinish: 8000,
+  distanceToFinish: 16000,
 
   /**
    * Finish gates spawn when distance reaches `distanceToFinish - finishSpawnLead` so they scroll in like hazards.
