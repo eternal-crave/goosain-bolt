@@ -1,4 +1,4 @@
-import { _decorator, Canvas, Color, Component, Graphics, instantiate, Node, Prefab, randomRange, Vec3, view } from 'cc';
+import { _decorator, Canvas, Component, instantiate, Node, Prefab, randomRange, Vec3, view } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { FinishZone } from '../finish/FinishZone';
 import { Obstacle } from './Obstacle';
@@ -20,9 +20,6 @@ export class Spawner extends Component {
     @property(Node)
     public obstacleParent: Node | null = null;
 
-    @property({ tooltip: 'Draw spawn-edge debug circle every frame' })
-    public debugDrawSpawnEdge = false;
-
     private _pool: ObjectPool | null = null;
     private _chargerPool: ObjectPool | null = null;
     private readonly _nodeToPool = new WeakMap<Node, ObjectPool>();
@@ -39,9 +36,6 @@ export class Spawner extends Component {
     private _canvas: Canvas | null = null;
     private readonly _screenProbe = new Vec3();
     private readonly _worldProbe = new Vec3();
-    private _debugGraphics: Graphics | null = null;
-    private readonly _debugLocalProbe = new Vec3();
-
     public onLoad(): void {
         if (this.obstaclePrefab && this.obstacleParent) {
             this._pool = new ObjectPool(this.obstaclePrefab, this.obstacleParent, GameConfig.poolSize);
@@ -57,14 +51,8 @@ export class Spawner extends Component {
         this._recomputeRecycleThreshold();
     }
 
-    public start(): void {
-        this._initDebugGraphics();
-    }
-
     public onDestroy(): void {
         view.off('canvas-resize', this._onCanvasResize, this);
-        this._debugGraphics?.node.destroy();
-        this._debugGraphics = null;
     }
 
     public resetForNewRun(): void {
@@ -136,7 +124,6 @@ export class Spawner extends Component {
 
     public update(dt: number): void {
         this._recycleOffscreen();
-        this._updateDebugDraw();
         if (!this._spawningObstacles || !this._pool) {
             return;
         }
@@ -263,53 +250,6 @@ export class Spawner extends Component {
             return worldX;
         }
         return (worldX - parent.worldPosition.x) / scaleX;
-    }
-
-    private _initDebugGraphics(): void {
-        if (!this.debugDrawSpawnEdge) {
-            return;
-        }
-        const canvas = this._getCanvas();
-        if (!canvas) {
-            return;
-        }
-        const debugNode = new Node('__SpawnerDebug__');
-        debugNode.setParent(canvas.node);
-        debugNode.setPosition(0, 0, 0);
-        this._debugGraphics = debugNode.addComponent(Graphics);
-    }
-
-    private _updateDebugDraw(): void {
-        const g = this._debugGraphics;
-        if (!g?.isValid || !this.debugDrawSpawnEdge) {
-            return;
-        }
-        const canvas = this._getCanvas();
-        if (!canvas) {
-            return;
-        }
-        const rightWorldX = this._computeRightViewportWorldX();
-        const spawnWorldX = rightWorldX + GameConfig.spawnEdgeOffset;
-
-        this._debugLocalProbe.set(rightWorldX, 0, 0);
-        canvas.node.inverseTransformPoint(this._debugLocalProbe, this._debugLocalProbe);
-        const edgeLocalX = this._debugLocalProbe.x;
-
-        this._debugLocalProbe.set(spawnWorldX, 0, 0);
-        canvas.node.inverseTransformPoint(this._debugLocalProbe, this._debugLocalProbe);
-        const spawnLocalX = this._debugLocalProbe.x;
-
-        g.clear();
-
-        // Green circle = raw right viewport edge
-        g.fillColor = new Color(0, 230, 80, 200);
-        g.circle(edgeLocalX, 0, 18);
-        g.fill();
-
-        // Red circle = spawn point (edge + offset)
-        g.fillColor = new Color(255, 50, 50, 220);
-        g.circle(spawnLocalX, 0, 30);
-        g.fill();
     }
 
     private _getCanvas(): Canvas | null {
