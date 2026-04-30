@@ -1,4 +1,4 @@
-import { _decorator, Canvas, Component, instantiate, Node, Prefab, randomRange, Vec3, view, View } from 'cc';
+import { _decorator, Canvas, Color, Component, Graphics, instantiate, Node, Prefab, randomRange, Vec3, view } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { FinishZone } from '../finish/FinishZone';
 import { Obstacle } from './Obstacle';
@@ -20,6 +20,9 @@ export class Spawner extends Component {
     @property(Node)
     public obstacleParent: Node | null = null;
 
+    @property({ tooltip: 'Draw spawn-edge debug circle every frame' })
+    public debugDrawSpawnEdge = false;
+
     private _pool: ObjectPool | null = null;
     private _chargerPool: ObjectPool | null = null;
     private readonly _nodeToPool = new WeakMap<Node, ObjectPool>();
@@ -36,6 +39,8 @@ export class Spawner extends Component {
     private _canvas: Canvas | null = null;
     private readonly _screenProbe = new Vec3();
     private readonly _worldProbe = new Vec3();
+    private _debugGraphics: Graphics | null = null;
+    private readonly _debugLocalProbe = new Vec3();
 
     public onLoad(): void {
         if (this.obstaclePrefab && this.obstacleParent) {
@@ -52,8 +57,14 @@ export class Spawner extends Component {
         this._recomputeRecycleThreshold();
     }
 
+    public start(): void {
+        this._initDebugGraphics();
+    }
+
     public onDestroy(): void {
         view.off('canvas-resize', this._onCanvasResize, this);
+        this._debugGraphics?.node.destroy();
+        this._debugGraphics = null;
     }
 
     public resetForNewRun(): void {
@@ -125,6 +136,7 @@ export class Spawner extends Component {
 
     public update(dt: number): void {
         this._recycleOffscreen();
+        this._updateDebugDraw();
         if (!this._spawningObstacles || !this._pool) {
             return;
         }
@@ -168,18 +180,23 @@ export class Spawner extends Component {
             this._dynamicRecycleX = GameConfig.recycleX;
             return;
         }
-        const visible = View.instance.getVisibleSize();
-        if (visible.width <= 0) {
-            this._dynamicRecycleX = GameConfig.recycleX;
-            return;
-        }
         const scaleX = this.obstacleParent.worldScale.x;
         if (Math.abs(scaleX) <= 1e-5) {
             this._dynamicRecycleX = GameConfig.recycleX;
             return;
         }
+        const canvas = this._getCanvas();
+        const camera = canvas?.cameraComponent;
+        let leftEdgeWorldX: number;
+        if (camera) {
+            const frame = view.getFrameSize();
+            this._screenProbe.set(0, frame.height * 0.5, 0);
+            camera.screenToWorld(this._screenProbe, this._worldProbe);
+            leftEdgeWorldX = this._worldProbe.x;
+        } else {
+            leftEdgeWorldX = -GameConfig.designWidth * 0.5;
+        }
         const parentWorldX = this.obstacleParent.worldPosition.x;
-        const leftEdgeWorldX = -visible.width * 0.5;
         const recycleWorldX = leftEdgeWorldX - GameConfig.recycleViewportMargin;
         this._dynamicRecycleX = (recycleWorldX - parentWorldX) / scaleX;
     }
@@ -199,7 +216,7 @@ export class Spawner extends Component {
         const y = this._getObstacleSpawnBaseY() + jitter;
         const node = pool.get();
         this._nodeToPool.set(node, pool);
-        const spawnX = this._computeSpawnLocalX(GameConfig.obstacleSpawnViewportMargin);
+        const spawnX = this._computeSpawnLocalX(GameConfig.spawnEdgeOffset);
         node.setPosition(spawnX, y, 0);
         const o = node.getComponent(Obstacle) ?? node.addComponent(Obstacle);
         o.moveSpeed = this._runSpeed;
@@ -232,13 +249,12 @@ export class Spawner extends Component {
         const canvas = this._getCanvas();
         const camera = canvas?.cameraComponent;
         if (camera) {
-            const visible = view.getVisibleSize();
-            this._screenProbe.set(visible.width, visible.height * 0.5, 0);
+            const frame = view.getFrameSize();
+            this._screenProbe.set(frame.width, frame.height * 0.5, 0);
             camera.screenToWorld(this._screenProbe, this._worldProbe);
             return this._worldProbe.x;
         }
-        const visible = view.getVisibleSize();
-        return visible.width * 0.5;
+        return GameConfig.designWidth * 0.5;
     }
 
     private _worldXToParentLocalX(worldX: number, parent: Node): number {
@@ -247,6 +263,53 @@ export class Spawner extends Component {
             return worldX;
         }
         return (worldX - parent.worldPosition.x) / scaleX;
+    }
+
+    private _initDebugGraphics(): void {
+        if (!this.debugDrawSpawnEdge) {
+            return;
+        }
+        const canvas = this._getCanvas();
+        if (!canvas) {
+            return;
+        }
+        const debugNode = new Node('__SpawnerDebug__');
+        debugNode.setParent(canvas.node);
+        debugNode.setPosition(0, 0, 0);
+        this._debugGraphics = debugNode.addComponent(Graphics);
+    }
+
+    private _updateDebugDraw(): void {
+        const g = this._debugGraphics;
+        if (!g?.isValid || !this.debugDrawSpawnEdge) {
+            return;
+        }
+        const canvas = this._getCanvas();
+        if (!canvas) {
+            return;
+        }
+        const rightWorldX = this._computeRightViewportWorldX();
+        const spawnWorldX = rightWorldX + GameConfig.spawnEdgeOffset;
+
+        this._debugLocalProbe.set(rightWorldX, 0, 0);
+        canvas.node.inverseTransformPoint(this._debugLocalProbe, this._debugLocalProbe);
+        const edgeLocalX = this._debugLocalProbe.x;
+
+        this._debugLocalProbe.set(spawnWorldX, 0, 0);
+        canvas.node.inverseTransformPoint(this._debugLocalProbe, this._debugLocalProbe);
+        const spawnLocalX = this._debugLocalProbe.x;
+
+        g.clear();
+
+        // Green circle = raw right viewport edge
+        g.fillColor = new Color(0, 230, 80, 200);
+        g.circle(edgeLocalX, 0, 18);
+        g.fill();
+
+        // Red circle = spawn point (edge + offset)
+        g.fillColor = new Color(255, 50, 50, 220);
+        g.circle(spawnLocalX, 0, 30);
+        g.fill();
     }
 
     private _getCanvas(): Canvas | null {

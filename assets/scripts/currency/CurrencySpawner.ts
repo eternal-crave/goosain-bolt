@@ -9,7 +9,6 @@ import {
     UITransform,
     Vec3,
     view,
-    View,
 } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { Obstacle } from '../game/Obstacle';
@@ -180,7 +179,7 @@ export class CurrencySpawner extends Component {
         }
 
         const sizes = cluster.map((n) => this._getPickupLocalSize(n));
-        const spawnX = this._computeSpawnLocalX(GameConfig.moneySpawnViewportMargin);
+        const spawnX = this._computeSpawnLocalX(GameConfig.spawnEdgeOffset);
         const xs = this._computeClusterXs(sizes, spawnX);
         const yScale = this._computeVerticalScale(normYs, sizes);
 
@@ -268,13 +267,12 @@ export class CurrencySpawner extends Component {
         const canvas = this._getCanvas();
         const camera = canvas?.cameraComponent;
         if (camera) {
-            const visible = view.getVisibleSize();
-            this._screenProbe.set(visible.width, visible.height * 0.5, 0);
+            const frame = view.getFrameSize();
+            this._screenProbe.set(frame.width, frame.height * 0.5, 0);
             camera.screenToWorld(this._screenProbe, this._worldProbe);
             return this._worldProbe.x;
         }
-        const visible = view.getVisibleSize();
-        return visible.width * 0.5;
+        return GameConfig.designWidth * 0.5;
     }
 
     private _worldXToParentLocalX(worldX: number, parent: Node): number {
@@ -358,18 +356,23 @@ export class CurrencySpawner extends Component {
             this._dynamicRecycleX = GameConfig.recycleX;
             return;
         }
-        const visible = View.instance.getVisibleSize();
-        if (visible.width <= 0) {
-            this._dynamicRecycleX = GameConfig.recycleX;
-            return;
-        }
         const scaleX = this.moneyParent.worldScale.x;
         if (Math.abs(scaleX) <= 1e-5) {
             this._dynamicRecycleX = GameConfig.recycleX;
             return;
         }
+        const canvas = this._getCanvas();
+        const camera = canvas?.cameraComponent;
+        let leftEdgeWorldX: number;
+        if (camera) {
+            const frame = view.getFrameSize();
+            this._screenProbe.set(0, frame.height * 0.5, 0);
+            camera.screenToWorld(this._screenProbe, this._worldProbe);
+            leftEdgeWorldX = this._worldProbe.x;
+        } else {
+            leftEdgeWorldX = -GameConfig.designWidth * 0.5;
+        }
         const parentWorldX = this.moneyParent.worldPosition.x;
-        const leftEdgeWorldX = -visible.width * 0.5;
         const recycleWorldX = leftEdgeWorldX - GameConfig.recycleViewportMargin;
         this._dynamicRecycleX = (recycleWorldX - parentWorldX) / scaleX;
     }

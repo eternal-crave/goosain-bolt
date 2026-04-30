@@ -55,8 +55,8 @@ export const GameConfig = {
   spawnIntervalMin: 2.5,
   spawnIntervalMax: 3,
 
-  /** World-space margin beyond right viewport edge for regular obstacle spawn. */
-  obstacleSpawnViewportMargin: 100,
+  /** World-space units beyond the canvas right edge where obstacles and money spawn. */
+  spawnEdgeOffset: 30,
 
   /** Extra world-space margin beyond right viewport edge for finish gate spawn. */
   finishSpawnViewportMargin: 520,
@@ -108,8 +108,6 @@ export const GameConfig = {
   /** Local Y of cluster baseline above money parent origin (same space as obstacles if parent shared). */
   moneyBaselineLocalY: 140,
 
-  /** World-space margin beyond right viewport edge where money cluster starts spawning. */
-  moneySpawnViewportMargin: 100,
 
   /** Prewarmed instances per money prefab variant. */
   moneyPoolSizePerPrefab: 8,

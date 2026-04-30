@@ -130,12 +130,11 @@ export class WorldScroll extends Component {
     const canvas = this._getCanvas();
     const camera = canvas?.cameraComponent;
     if (camera) {
-      const visibleSize = view.getVisibleSize();
-      this._screenProbe.set(0, visibleSize.height * 0.5, 0);
+      const frame = view.getFrameSize();
+      this._screenProbe.set(0, frame.height * 0.5, 0);
       camera.screenToWorld(this._screenProbe, this._worldProbe);
       return this._worldProbe.x - this.wrapViewportOffset;
     }
-
     const canvasTransform = canvas?.node.getComponent(UITransform);
     if (!canvasTransform) {
       return -GameConfig.designWidth * 0.5 - this.wrapViewportOffset;
