@@ -54,7 +54,7 @@
             "_value": true
           },
           "particle": {
-            "_value": false
+            "_value": true
           },
           "physics": {
             "_value": false,
@@ -116,7 +116,7 @@
             "_value": false
           },
           "particle-2d": {
-            "_value": false
+            "_value": true
           },
           "audio": {
             "_value": true
@@ -196,11 +196,13 @@
           "animation",
           "audio",
           "base",
-          "legacy-pipeline",
           "gfx-webgl",
           "graphics",
           "intersection-2d",
+          "legacy-pipeline",
           "mask",
+          "particle",
+          "particle-2d",
           "profiler",
           "rich-text",
           "tween",

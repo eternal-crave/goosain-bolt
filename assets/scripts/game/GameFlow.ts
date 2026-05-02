@@ -10,6 +10,7 @@ import { LoseUi } from '../ui/LoseUi';
 import { FinishRope } from '../finish/FinishRope';
 import { Spawner } from './Spawner';
 import { WorldScroll } from './WorldScroll';
+import { ConfettiManager } from '../fx/ConfettiManager';
 
 const { ccclass, property } = _decorator;
 
@@ -115,6 +116,12 @@ export class GameFlow extends Component {
         }
         this.sfx?.playFinish();
         this._state = RunState.Won;
+        const introDelay = (this.loseUi?.introDurationUp ?? 0.35) + (this.loseUi?.introDurationSettle ?? 0.22);
+        this.scheduleOnce(() => {
+            if (this._state === RunState.Won) {
+                ConfettiManager.instance?.play();
+            }
+        }, introDelay);
         this._gameEndPanelPinned = true;
         this.spawner?.setObstacleSpawning(false);
         this.spawner?.setOffscreenRecyclingEnabled(false);
