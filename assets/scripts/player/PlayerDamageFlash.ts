@@ -59,11 +59,14 @@ export class PlayerDamageFlash extends Component {
         }
     }
 
+    public reset(): void {
+        this._cancelFlash();
+        this._restoreColor();
+    }
+
     private _onHealthChanged(): void {
         if (!this.health || this.health.current === this.health.max) {
-            this._cancelFlash();
-            this._refreshBaseFromSprite();
-            this._restoreColor();
+            this.reset();
         }
     }
 
