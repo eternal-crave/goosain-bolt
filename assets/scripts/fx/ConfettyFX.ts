@@ -2,8 +2,8 @@ import { _decorator, Component, ParticleSystem2D } from 'cc';
 
 const { ccclass, property } = _decorator;
 
-@ccclass('ConfettiEffect')
-export class ConfettiEffect extends Component {
+@ccclass('ConfettyFX')
+export class ConfettyFX extends Component {
 
     @property({ type: [ParticleSystem2D], tooltip: 'All particle emitters for this confetti effect — one per sprite.' })
     private particleSystems: ParticleSystem2D[] = [];

@@ -54,7 +54,7 @@
             "_value": true
           },
           "particle": {
-            "_value": true
+            "_value": false
           },
           "physics": {
             "_value": false,
@@ -190,6 +190,7 @@
             "_value": false
           }
         },
+        "flags": {},
         "includeModules": [
           "2d",
           "affine-transform",
@@ -201,7 +202,6 @@
           "intersection-2d",
           "legacy-pipeline",
           "mask",
-          "particle",
           "particle-2d",
           "profiler",
           "rich-text",
@@ -211,8 +211,7 @@
         "noDeprecatedFeatures": {
           "value": false,
           "version": ""
-        },
-        "flags": {}
+        }
       }
     },
     "globalConfigKey": "defaultConfig"

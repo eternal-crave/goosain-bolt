@@ -1,27 +1,27 @@
 import { _decorator, Component } from 'cc';
-import { ConfettiEffect } from './ConfettiEffect';
+import { ConfettyFX } from './ConfettyFX';
 
 const { ccclass, property } = _decorator;
 
-@ccclass('ConfettiManager')
-export class ConfettiManager extends Component {
+@ccclass('ConfettyFXManager')
+export class ConfettyFXManager extends Component {
 
-    @property({ type: [ConfettiEffect], tooltip: 'All confetti effects placed in the scene.' })
-    private effects: ConfettiEffect[] = [];
+    @property({ type: [ConfettyFX], tooltip: 'All confetti effects placed in the scene.' })
+    private effects: ConfettyFX[] = [];
 
-    private static _instance: ConfettiManager | null = null;
+    private static _instance: ConfettyFXManager | null = null;
 
     // -------------------------------------------------------------------------
     // Lifecycle
     // -------------------------------------------------------------------------
 
     onLoad(): void {
-        ConfettiManager._instance = this;
+        ConfettyFXManager._instance = this;
     }
 
     onDestroy(): void {
-        if (ConfettiManager._instance === this) {
-            ConfettiManager._instance = null;
+        if (ConfettyFXManager._instance === this) {
+            ConfettyFXManager._instance = null;
         }
     }
 
@@ -29,8 +29,8 @@ export class ConfettiManager extends Component {
     // Static accessor
     // -------------------------------------------------------------------------
 
-    static get instance(): ConfettiManager | null {
-        return ConfettiManager._instance;
+    static get instance(): ConfettyFXManager | null {
+        return ConfettyFXManager._instance;
     }
 
     // -------------------------------------------------------------------------
