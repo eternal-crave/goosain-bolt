@@ -10,6 +10,7 @@ import {
     Vec3,
     view,
 } from 'cc';
+import { GameSfx } from '../audio/GameSfx';
 import { GameConfig } from '../config/GameConfig';
 import { Obstacle } from '../game/Obstacle';
 import { ObjectPool } from '../game/ObjectPool';
@@ -27,6 +28,12 @@ export class CurrencySpawner extends Component {
 
     @property(Node)
     public moneyParent: Node | null = null;
+
+    @property({
+        type: GameSfx,
+        tooltip: 'Optional one-shot SFX when money is collected.',
+    })
+    public sfx: GameSfx | null = null;
 
     private _pools: ObjectPool[] = [];
     private readonly _nodeToPool = new WeakMap<Node, ObjectPool>();
@@ -112,6 +119,7 @@ export class CurrencySpawner extends Component {
             }
             const pickup = n.getComponent(MoneyPickup);
             wallet.add(pickup?.getCollectValue() ?? 1);
+            this.sfx?.playCurrencyCollect();
             this._returnToPool(n, i);
         }
     }

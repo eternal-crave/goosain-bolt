@@ -1,4 +1,5 @@
 import { _decorator, CCFloat, Component, EventTouch, find, input, Input, Label, Node } from 'cc';
+import { GameSfx } from '../audio/GameSfx';
 import { GameConfig } from '../config/GameConfig';
 import { CurrencySpawner } from '../currency/CurrencySpawner';
 import { CurrencyWallet } from '../currency/CurrencyWallet';
@@ -52,6 +53,12 @@ export class GameFlow extends Component {
     @property(LoseUi)
     public loseUi: LoseUi | null = null;
 
+    @property({
+        type: GameSfx,
+        tooltip: 'SFX + optional looping run BGM (assign clips on GameSfx).',
+    })
+    public sfx: GameSfx | null = null;
+
     @property({ type: CCFloat, tooltip: 'Starting horizontal speed for each run.' })
     public baseRunSpeed = GameConfig.baseRunSpeed;
 
@@ -77,6 +84,10 @@ export class GameFlow extends Component {
     /** Obstacle roots that already dealt damage for the current continuous overlap. */
     private readonly _obstacleDamageClaimed = new Set<Node>();
 
+    private readonly _onPlayerDamaged = (): void => {
+        this.sfx?.playDamage();
+    };
+
     public onLoad(): void {
         input.on(Input.EventType.TOUCH_END, this._onTapMenu, this);
         this._ensureLoseUi();
@@ -84,6 +95,14 @@ export class GameFlow extends Component {
         this.spawner?.setOffscreenRecyclingEnabled(true);
         this.currencySpawner?.setOffscreenRecyclingEnabled(true);
         this._stopRunMotion();
+    }
+
+    public onEnable(): void {
+        this.playerHealth?.onDamaged(this._onPlayerDamaged, this);
+    }
+
+    public onDisable(): void {
+        this.playerHealth?.offDamaged(this._onPlayerDamaged, this);
     }
 
     public onDestroy(): void {
@@ -94,6 +113,7 @@ export class GameFlow extends Component {
         if (this._state !== RunState.Running) {
             return;
         }
+        this.sfx?.playFinish();
         this._state = RunState.Won;
         this._gameEndPanelPinned = true;
         this.spawner?.setObstacleSpawning(false);
@@ -239,12 +259,14 @@ export class GameFlow extends Component {
             this.player.node.getComponent(PlayerVisualAnimator)?.enterRunning();
         }
         this._setHudRunning();
+        this._applyRunningAudioVisual(true);
     }
 
     private _lose(): void {
         if (this._state !== RunState.Running) {
             return;
         }
+        this.sfx?.playLose();
         this._state = RunState.Lost;
         this._gameEndPanelPinned = true;
 
@@ -288,6 +310,7 @@ export class GameFlow extends Component {
             this.player.inputEnabled = false;
             this.player.resetForRun();
         }
+        this._applyRunningAudioVisual(false);
         this._setHudMenu();
     }
 
@@ -316,7 +339,7 @@ export class GameFlow extends Component {
     }
 
     private _applyRunningAudioVisual(running: boolean): void {
-        void running;
+        this.sfx?.setRunBgmActive(running);
     }
 
     private _stopRunMotion(): void {
