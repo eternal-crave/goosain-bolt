@@ -161,17 +161,20 @@ window.base64ToBlob = function (base64) {
 /**
  * Returns a cached Blob URL for an asset.
  * Caching prevents repeated Blob + createObjectURL allocations (critical on mobile).
+ * Stored on window (not a standalone var) so html-minifier output stays valid when
+ * consecutive assignments are comma-folded into one expression.
  * @param {string} url - Asset URL
  * @returns {string|null} Blob URL or null if asset not found
  */
-var _blobUrlCache = {};
+window._playableBlobUrlCache = window._playableBlobUrlCache || {};
 window.getBlobURL = function (url) {
-	if (_blobUrlCache[url]) return _blobUrlCache[url];
+	var cache = window._playableBlobUrlCache;
+	if (cache[url]) return cache[url];
 	var base64 = getAsset(url);
 	if (!base64) return null;
 	var blob = base64ToBlob(base64);
 	var blobUrl = URL.createObjectURL(blob);
-	_blobUrlCache[url] = blobUrl;
+	cache[url] = blobUrl;
 	return blobUrl;
 };
 
