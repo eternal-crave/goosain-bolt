@@ -1,7 +1,9 @@
 import {
     _decorator,
+    CCBoolean,
     Canvas,
     Component,
+    Graphics,
     Node,
     Prefab,
     randomRange,
@@ -14,6 +16,7 @@ import { GameSfx } from '../audio/GameSfx';
 import { GameConfig } from '../config/GameConfig';
 import { Obstacle } from '../game/Obstacle';
 import { ObjectPool } from '../game/ObjectPool';
+import { drawViewportEdgeDebugCircles, getViewportLeftRightWorld } from '../game/viewportEdgeWorld';
 import { PlayerController } from '../player/PlayerController';
 import { CurrencyWallet } from './CurrencyWallet';
 import { computeNormalizedLayoutYs, pickRandomLayoutStrategy } from './moneyLayouts';
@@ -35,6 +38,14 @@ export class CurrencySpawner extends Component {
     })
     public sfx: GameSfx | null = null;
 
+    @property({
+        type: CCBoolean,
+        displayName: 'Debug Draw Viewport Edges',
+        tooltip:
+            'Draw circles at viewport left, recycle line, right, and spawn line (spawn edge margin).',
+    })
+    public debugDrawViewportEdges = false;
+
     private _pools: ObjectPool[] = [];
     private readonly _nodeToPool = new WeakMap<Node, ObjectPool>();
     private readonly _active: Node[] = [];
@@ -48,6 +59,9 @@ export class CurrencySpawner extends Component {
     private _canvas: Canvas | null = null;
     private readonly _screenProbe = new Vec3();
     private readonly _worldProbe = new Vec3();
+    private _debugGraphics: Graphics | null = null;
+    private _debugGraphicsUi: UITransform | null = null;
+    private readonly _debugLocal = new Vec3();
 
     public onLoad(): void {
         this._buildPools();
@@ -97,6 +111,29 @@ export class CurrencySpawner extends Component {
             this._spawnCluster();
             this._scheduleNextSpawn();
         }
+    }
+
+    public lateUpdate(): void {
+        const showDebug = this.debugDrawViewportEdges || GameConfig.showViewportEdgeDebug;
+        if (!showDebug) {
+            this._debugGraphics?.clear();
+            return;
+        }
+        this._ensureViewportDebugOverlay();
+        const g = this._debugGraphics;
+        const ui = this._debugGraphicsUi;
+        if (!g || !ui || !g.isValid || !ui.isValid) {
+            return;
+        }
+        drawViewportEdgeDebugCircles(
+            g,
+            ui,
+            this._getCanvas(),
+            this._screenProbe,
+            this._worldProbe,
+            this._debugLocal,
+            GameConfig.spawnEdgeOffset,
+        );
     }
 
     public processCollection(player: PlayerController | null, wallet: CurrencyWallet | null): void {
@@ -272,15 +309,8 @@ export class CurrencySpawner extends Component {
     }
 
     private _computeRightViewportWorldX(): number {
-        const canvas = this._getCanvas();
-        const camera = canvas?.cameraComponent;
-        if (camera) {
-            const frame = view.getFrameSize();
-            this._screenProbe.set(frame.width, frame.height * 0.5, 0);
-            camera.screenToWorld(this._screenProbe, this._worldProbe);
-            return this._worldProbe.x;
-        }
-        return GameConfig.designWidth * 0.5;
+        const { right } = getViewportLeftRightWorld(this._getCanvas(), this._screenProbe, this._worldProbe);
+        return right;
     }
 
     private _worldXToParentLocalX(worldX: number, parent: Node): number {
@@ -369,20 +399,32 @@ export class CurrencySpawner extends Component {
             this._dynamicRecycleX = GameConfig.recycleX;
             return;
         }
-        const canvas = this._getCanvas();
-        const camera = canvas?.cameraComponent;
-        let leftEdgeWorldX: number;
-        if (camera) {
-            const frame = view.getFrameSize();
-            this._screenProbe.set(0, frame.height * 0.5, 0);
-            camera.screenToWorld(this._screenProbe, this._worldProbe);
-            leftEdgeWorldX = this._worldProbe.x;
-        } else {
-            leftEdgeWorldX = -GameConfig.designWidth * 0.5;
-        }
+        const { left: leftEdgeWorldX } = getViewportLeftRightWorld(
+            this._getCanvas(),
+            this._screenProbe,
+            this._worldProbe,
+        );
         const parentWorldX = this.moneyParent.worldPosition.x;
         const recycleWorldX = leftEdgeWorldX - GameConfig.recycleViewportMargin;
         this._dynamicRecycleX = (recycleWorldX - parentWorldX) / scaleX;
+    }
+
+    private _ensureViewportDebugOverlay(): void {
+        if (this._debugGraphics?.isValid && this._debugGraphicsUi?.isValid) {
+            return;
+        }
+        const canvas = this._getCanvas();
+        const parentNode = canvas?.node ?? this.node;
+        const n = new Node('ViewportEdgeDebug');
+        n.layer = parentNode.layer;
+        n.setParent(parentNode);
+        const ui = n.addComponent(UITransform);
+        const vs = view.getVisibleSize();
+        ui.setContentSize(vs.width, vs.height);
+        const g = n.addComponent(Graphics);
+        this._debugGraphics = g;
+        this._debugGraphicsUi = ui;
+        n.setSiblingIndex(Math.max(0, parentNode.children.length - 1));
     }
 
     private _getCanvas(): Canvas | null {

@@ -111,4 +111,11 @@ export const GameConfig = {
 
   /** Prewarmed instances per money prefab variant. */
   moneyPoolSizePerPrefab: 8,
+
+  /**
+   * When true, Spawner and CurrencySpawner draw viewport-edge debug discs (red filled circles)
+   * in all builds, without relying on the inspector checkbox. Use for playables / device testing;
+   * keep false for store builds. Shown if this is true OR the component's Debug Draw flag is on.
+   */
+  showViewportEdgeDebug: true,
 } as const;

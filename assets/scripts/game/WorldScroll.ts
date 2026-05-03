@@ -1,5 +1,6 @@
-import { _decorator, CCFloat, Canvas, Component, Node, UITransform, Vec3, view } from 'cc';
+import { _decorator, CCFloat, Canvas, Component, Node, UITransform, Vec3 } from 'cc';
 import { GameConfig } from '../config/GameConfig';
+import { getViewportLeftRightWorld } from './viewportEdgeWorld';
 
 const { ccclass, property } = _decorator;
 
@@ -130,10 +131,8 @@ export class WorldScroll extends Component {
     const canvas = this._getCanvas();
     const camera = canvas?.cameraComponent;
     if (camera) {
-      const frame = view.getFrameSize();
-      this._screenProbe.set(0, frame.height * 0.5, 0);
-      camera.screenToWorld(this._screenProbe, this._worldProbe);
-      return this._worldProbe.x - this.wrapViewportOffset;
+      const { left } = getViewportLeftRightWorld(canvas, this._screenProbe, this._worldProbe);
+      return left - this.wrapViewportOffset;
     }
     const canvasTransform = canvas?.node.getComponent(UITransform);
     if (!canvasTransform) {
