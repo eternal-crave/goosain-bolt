@@ -1,6 +1,10 @@
 /**
  * Wraps `cocos-creator-single-file-package`: packs a Cocos Creator 3.x web-mobile
  * build into one HTML file, then enforces a max file size (playable / ad limits).
+ *
+ * Before packing we copy our patched client scripts from tools/packager-client/ over
+ * the node_modules originals so that every pack run uses the mobile-fixed versions.
+ * The source-of-truth lives in tools/packager-client/ and survives npm install.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -68,6 +72,32 @@ function pruneRedundantNativeTextures(buildDirAbs) {
 
   walk(assetsRoot);
   return { removed, bytesFreed };
+}
+
+/**
+ * Copies patched client files from tools/packager-client/ into the
+ * cocos-creator-single-file-package node_modules client directory.
+ *
+ * This ensures mobile-compatibility fixes (HTMLImageElement hook, absolute URL
+ * resolution, Blob URL caching, auto-hookCocosLoader) are always applied without
+ * modifying node_modules manually.
+ *
+ * @param {string} nodeModulesClientDir - Absolute path to the package's client/ folder
+ */
+function syncPatchedClientFiles(nodeModulesClientDir) {
+  const patchDir = path.join(root, 'tools', 'packager-client');
+  const files = ['hook.js', 'asset-helper.js'];
+
+  for (const file of files) {
+    const src = path.join(patchDir, file);
+    const dest = path.join(nodeModulesClientDir, file);
+    if (!fs.existsSync(src)) {
+      console.warn(`\n⚠️  Patched client file not found, skipping: ${src}`);
+      continue;
+    }
+    fs.copyFileSync(src, dest);
+    console.log(`   ✅ Synced patched ${file} → ${dest}`);
+  }
 }
 
 function parseMaxBytes(argv) {
@@ -152,6 +182,14 @@ Flow:
   fs.mkdirSync(path.dirname(outAbs), { recursive: true });
 
   const { execute } = require('cocos-creator-single-file-package/src/tool/packager.js');
+
+  // Sync patched client files so mobile fixes are always included in the output
+  const nodeModulesClientDir = path.resolve(
+    require.resolve('cocos-creator-single-file-package/src/tool/packager.js'),
+    '../../client',
+  );
+  console.log('\n🔧 Syncing patched client files for mobile compatibility...');
+  syncPatchedClientFiles(nodeModulesClientDir);
 
   await execute(root, {
     buildDir,
