@@ -12,13 +12,10 @@
     "lint:fix": "eslint . --fix --no-error-on-unmatched-pattern",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "pack:single-html": "node tools/pack-single-html.mjs --prune-native",
-    "deploy": "node tools/deploy-gh-pages.mjs",
-    "pack:and:deploy": "npm run pack:single-html && npm run deploy"
+    "deploy": "node tools/deploy-gh-pages.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
-    "cocos-creator-single-file-package": "^0.1.0",
     "eslint": "^9.15.0",
     "eslint-config-prettier": "^10.0.0",
     "prettier": "^3.4.0",

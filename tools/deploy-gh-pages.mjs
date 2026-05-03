@@ -97,7 +97,9 @@ Examples:
       console.log(`\n📄 Source: index.html (repo root fallback — no pack output found)`);
     } else {
       console.error('\n❌ No source file found.');
-      console.error('   Run npm run pack:single-html first, or pass --input <path>.');
+      console.error(
+        '   Produce a single-file HTML (your packer), place it in the repo or pass --input <path>.'
+      );
       process.exit(1);
     }
   } else {
