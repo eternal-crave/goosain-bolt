@@ -3,6 +3,8 @@ import { GameConfig } from '../config/GameConfig';
 import { FinishZone } from '../finish/FinishZone';
 import { Obstacle } from './Obstacle';
 import { ObjectPool } from './ObjectPool';
+import { ScreenEdgeProvider } from './ScreenEdgeProvider';
+import { getViewportLeftRightWorld } from './viewportEdgeWorld';
 
 const { ccclass, property } = _decorator;
 
@@ -20,6 +22,12 @@ export class Spawner extends Component {
     @property(Node)
     public obstacleParent: Node | null = null;
 
+    @property({
+        type: ScreenEdgeProvider,
+        tooltip: 'If unset, resolves first ScreenEdgeProvider in the scene.',
+    })
+    public screenEdges: ScreenEdgeProvider | null = null;
+
     private _pool: ObjectPool | null = null;
     private _chargerPool: ObjectPool | null = null;
     private readonly _nodeToPool = new WeakMap<Node, ObjectPool>();
@@ -33,9 +41,10 @@ export class Spawner extends Component {
     private _dynamicRecycleX = GameConfig.recycleX;
     /** When false, obstacles stay on screen (e.g. lose / win) until run reset. */
     private _offscreenRecycleEnabled = true;
-    private _canvas: Canvas | null = null;
-    private readonly _screenProbe = new Vec3();
-    private readonly _worldProbe = new Vec3();
+    private _resolvedScreenEdges: ScreenEdgeProvider | null = null;
+    private readonly _fallbackScreenProbe = new Vec3();
+    private readonly _fallbackWorldProbe = new Vec3();
+
     public onLoad(): void {
         if (this.obstaclePrefab && this.obstacleParent) {
             this._pool = new ObjectPool(this.obstaclePrefab, this.obstacleParent, GameConfig.poolSize);
@@ -172,17 +181,14 @@ export class Spawner extends Component {
             this._dynamicRecycleX = GameConfig.recycleX;
             return;
         }
-        const canvas = this._getCanvas();
-        const camera = canvas?.cameraComponent;
-        let leftEdgeWorldX: number;
-        if (camera) {
-            const frame = view.getFrameSize();
-            this._screenProbe.set(0, frame.height * 0.5, 0);
-            camera.screenToWorld(this._screenProbe, this._worldProbe);
-            leftEdgeWorldX = this._worldProbe.x;
-        } else {
-            leftEdgeWorldX = -GameConfig.designWidth * 0.5;
-        }
+        const se = this._getScreenEdgesOrNull();
+        const leftEdgeWorldX = se
+            ? se.getViewportEdges().left
+            : getViewportLeftRightWorld(
+                  this.node.scene?.getComponentInChildren(Canvas) ?? null,
+                  this._fallbackScreenProbe,
+                  this._fallbackWorldProbe,
+              ).left;
         const parentWorldX = this.obstacleParent.worldPosition.x;
         const recycleWorldX = leftEdgeWorldX - GameConfig.recycleViewportMargin;
         this._dynamicRecycleX = (recycleWorldX - parentWorldX) / scaleX;
@@ -228,20 +234,30 @@ export class Spawner extends Component {
         if (!parent || !parent.isValid) {
             return GameConfig.designWidth * 0.5 + worldMargin;
         }
-        const rightWorldX = this._computeRightViewportWorldX();
-        return this._worldXToParentLocalX(rightWorldX + worldMargin, parent);
+        const se = this._getScreenEdgesOrNull();
+        if (se) {
+            return se.worldXToParentLocalX(se.getSpawnWorldX(worldMargin), parent);
+        }
+        const rightWorldPlusMargin =
+            getViewportLeftRightWorld(
+                this.node.scene?.getComponentInChildren(Canvas) ?? null,
+                this._fallbackScreenProbe,
+                this._fallbackWorldProbe,
+            ).right + worldMargin;
+        return this._worldXToParentLocalX(rightWorldPlusMargin, parent);
     }
 
-    private _computeRightViewportWorldX(): number {
-        const canvas = this._getCanvas();
-        const camera = canvas?.cameraComponent;
-        if (camera) {
-            const frame = view.getFrameSize();
-            this._screenProbe.set(frame.width, frame.height * 0.5, 0);
-            camera.screenToWorld(this._screenProbe, this._worldProbe);
-            return this._worldProbe.x;
+    private _getScreenEdgesOrNull(): ScreenEdgeProvider | null {
+        const hint = this.screenEdges;
+        if (hint?.isValid) {
+            return hint;
         }
-        return GameConfig.designWidth * 0.5;
+        if (this._resolvedScreenEdges?.isValid) {
+            return this._resolvedScreenEdges;
+        }
+        const found = this.node.scene?.getComponentInChildren(ScreenEdgeProvider) ?? null;
+        this._resolvedScreenEdges = found?.isValid ? found : null;
+        return this._resolvedScreenEdges;
     }
 
     private _worldXToParentLocalX(worldX: number, parent: Node): number {
@@ -250,15 +266,6 @@ export class Spawner extends Component {
             return worldX;
         }
         return (worldX - parent.worldPosition.x) / scaleX;
-    }
-
-    private _getCanvas(): Canvas | null {
-        if (this._canvas && this._canvas.isValid) {
-            return this._canvas;
-        }
-        const nextCanvas = this.node.scene?.getComponentInChildren(Canvas) ?? null;
-        this._canvas = nextCanvas && nextCanvas.isValid ? nextCanvas : null;
-        return this._canvas;
     }
 
     private _recycleOffscreen(): void {

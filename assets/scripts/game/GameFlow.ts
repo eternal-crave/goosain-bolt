@@ -1,4 +1,5 @@
 import { _decorator, CCFloat, Component, EventTouch, find, input, Input, Label, Node } from 'cc';
+import { GameSfx } from '../audio/GameSfx';
 import { GameConfig } from '../config/GameConfig';
 import { CurrencySpawner } from '../currency/CurrencySpawner';
 import { CurrencyWallet } from '../currency/CurrencyWallet';
@@ -7,8 +8,10 @@ import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerVisualAnimator } from '../player/PlayerVisualAnimator';
 import { LoseUi } from '../ui/LoseUi';
 import { FinishRope } from '../finish/FinishRope';
+import { ScreenEdgeProvider } from './ScreenEdgeProvider';
 import { Spawner } from './Spawner';
 import { WorldScroll } from './WorldScroll';
+import { ConfettyFXManager } from '../fx/ConfettyFXManager';
 
 const { ccclass, property } = _decorator;
 
@@ -52,6 +55,12 @@ export class GameFlow extends Component {
     @property(LoseUi)
     public loseUi: LoseUi | null = null;
 
+    @property({
+        type: GameSfx,
+        tooltip: 'SFX + optional looping run BGM (assign clips on GameSfx).',
+    })
+    public sfx: GameSfx | null = null;
+
     @property({ type: CCFloat, tooltip: 'Starting horizontal speed for each run.' })
     public baseRunSpeed = GameConfig.baseRunSpeed;
 
@@ -77,13 +86,35 @@ export class GameFlow extends Component {
     /** Obstacle roots that already dealt damage for the current continuous overlap. */
     private readonly _obstacleDamageClaimed = new Set<Node>();
 
+    /** Ensures a single viewport-edge cache runs before sibling Spawner / CurrencySpawner onLoad. */
+    private _ensureScreenEdgeProvider(): void {
+        if (this.node.getComponent(ScreenEdgeProvider)) {
+            return;
+        }
+        const provider = this.node.addComponent(ScreenEdgeProvider);
+        provider.debugDrawViewportEdges = GameConfig.showViewportEdgeDebug;
+    }
+
+    private readonly _onPlayerDamaged = (): void => {
+        this.sfx?.playDamage();
+    };
+
     public onLoad(): void {
+        this._ensureScreenEdgeProvider();
         input.on(Input.EventType.TOUCH_END, this._onTapMenu, this);
         this._ensureLoseUi();
         this._setHudMenu();
         this.spawner?.setOffscreenRecyclingEnabled(true);
         this.currencySpawner?.setOffscreenRecyclingEnabled(true);
         this._stopRunMotion();
+    }
+
+    public onEnable(): void {
+        this.playerHealth?.onDamaged(this._onPlayerDamaged, this);
+    }
+
+    public onDisable(): void {
+        this.playerHealth?.offDamaged(this._onPlayerDamaged, this);
     }
 
     public onDestroy(): void {
@@ -94,7 +125,14 @@ export class GameFlow extends Component {
         if (this._state !== RunState.Running) {
             return;
         }
+        this.sfx?.playFinish();
         this._state = RunState.Won;
+        const introDelay = (this.loseUi?.introDurationUp ?? 0.35) + (this.loseUi?.introDurationSettle ?? 0.22);
+        this.scheduleOnce(() => {
+            if (this._state === RunState.Won) {
+                ConfettyFXManager.instance?.play();
+            }
+        }, introDelay);
         this._gameEndPanelPinned = true;
         this.spawner?.setObstacleSpawning(false);
         this.spawner?.setOffscreenRecyclingEnabled(false);
@@ -239,12 +277,14 @@ export class GameFlow extends Component {
             this.player.node.getComponent(PlayerVisualAnimator)?.enterRunning();
         }
         this._setHudRunning();
+        this._applyRunningAudioVisual(true);
     }
 
     private _lose(): void {
         if (this._state !== RunState.Running) {
             return;
         }
+        this.sfx?.playLose();
         this._state = RunState.Lost;
         this._gameEndPanelPinned = true;
 
@@ -288,6 +328,7 @@ export class GameFlow extends Component {
             this.player.inputEnabled = false;
             this.player.resetForRun();
         }
+        this._applyRunningAudioVisual(false);
         this._setHudMenu();
     }
 
@@ -316,7 +357,7 @@ export class GameFlow extends Component {
     }
 
     private _applyRunningAudioVisual(running: boolean): void {
-        void running;
+        this.sfx?.setRunBgmActive(running);
     }
 
     private _stopRunMotion(): void {

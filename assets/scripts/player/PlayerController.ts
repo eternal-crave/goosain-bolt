@@ -11,6 +11,7 @@ import {
     Vec3,
     input,
 } from 'cc';
+import { GameSfx } from '../audio/GameSfx';
 import { GameConfig } from '../config/GameConfig';
 import { FinishZone } from '../finish/FinishZone';
 import { getCollisionWorldRect } from '../game/HitboxBounds';
@@ -39,6 +40,12 @@ export class PlayerController extends Component {
             'Optional sprite whose UITransform defines the hitbox. If empty, uses legacy bounds: root Sprite, else root UITransform.',
     })
     public hitboxSprite: Sprite | null = null;
+
+    @property({
+        type: GameSfx,
+        tooltip: 'Optional one-shot SFX (jump).',
+    })
+    public sfx: GameSfx | null = null;
 
     private _velY = 0;
     private _tmpPos = new Vec3();
@@ -164,6 +171,7 @@ export class PlayerController extends Component {
         if (grounded) {
             this._velY = this.jumpVelocity;
             this._visual?.notifyJump();
+            this.sfx?.playJump();
         }
     }
 }

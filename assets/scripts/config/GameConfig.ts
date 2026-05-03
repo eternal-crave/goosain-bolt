@@ -111,4 +111,11 @@ export const GameConfig = {
 
   /** Prewarmed instances per money prefab variant. */
   moneyPoolSizePerPrefab: 8,
+
+  /**
+   * When true, GameFlow-seeded ScreenEdgeProvider instances default debug drawing on; scene-placed
+   * providers still need this true and "Debug Draw Viewport Edges" checked to show discs.
+   * Use for playables / device testing; keep false for store builds.
+   */
+  showViewportEdgeDebug: true,
 } as const;

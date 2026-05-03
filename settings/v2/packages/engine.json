@@ -116,7 +116,7 @@
             "_value": false
           },
           "particle-2d": {
-            "_value": false
+            "_value": true
           },
           "audio": {
             "_value": true
@@ -190,17 +190,19 @@
             "_value": false
           }
         },
+        "flags": {},
         "includeModules": [
           "2d",
           "affine-transform",
           "animation",
           "audio",
           "base",
-          "legacy-pipeline",
           "gfx-webgl",
           "graphics",
           "intersection-2d",
+          "legacy-pipeline",
           "mask",
+          "particle-2d",
           "profiler",
           "rich-text",
           "tween",
@@ -209,8 +211,7 @@
         "noDeprecatedFeatures": {
           "value": false,
           "version": ""
-        },
-        "flags": {}
+        }
       }
     },
     "globalConfigKey": "defaultConfig"

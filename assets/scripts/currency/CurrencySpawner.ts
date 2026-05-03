@@ -10,9 +10,12 @@ import {
     Vec3,
     view,
 } from 'cc';
+import { GameSfx } from '../audio/GameSfx';
 import { GameConfig } from '../config/GameConfig';
 import { Obstacle } from '../game/Obstacle';
 import { ObjectPool } from '../game/ObjectPool';
+import { ScreenEdgeProvider } from '../game/ScreenEdgeProvider';
+import { getViewportLeftRightWorld } from '../game/viewportEdgeWorld';
 import { PlayerController } from '../player/PlayerController';
 import { CurrencyWallet } from './CurrencyWallet';
 import { computeNormalizedLayoutYs, pickRandomLayoutStrategy } from './moneyLayouts';
@@ -28,6 +31,18 @@ export class CurrencySpawner extends Component {
     @property(Node)
     public moneyParent: Node | null = null;
 
+    @property({
+        type: GameSfx,
+        tooltip: 'Optional one-shot SFX when money is collected.',
+    })
+    public sfx: GameSfx | null = null;
+
+    @property({
+        type: ScreenEdgeProvider,
+        tooltip: 'If unset, resolves first ScreenEdgeProvider in the scene.',
+    })
+    public screenEdges: ScreenEdgeProvider | null = null;
+
     private _pools: ObjectPool[] = [];
     private readonly _nodeToPool = new WeakMap<Node, ObjectPool>();
     private readonly _active: Node[] = [];
@@ -38,9 +53,9 @@ export class CurrencySpawner extends Component {
     private _dynamicRecycleX = GameConfig.recycleX;
     /** When false, money pickups stay on screen until run reset. */
     private _offscreenRecycleEnabled = true;
-    private _canvas: Canvas | null = null;
-    private readonly _screenProbe = new Vec3();
-    private readonly _worldProbe = new Vec3();
+    private _resolvedScreenEdges: ScreenEdgeProvider | null = null;
+    private readonly _fallbackScreenProbe = new Vec3();
+    private readonly _fallbackWorldProbe = new Vec3();
 
     public onLoad(): void {
         this._buildPools();
@@ -112,6 +127,7 @@ export class CurrencySpawner extends Component {
             }
             const pickup = n.getComponent(MoneyPickup);
             wallet.add(pickup?.getCollectValue() ?? 1);
+            this.sfx?.playCurrencyCollect();
             this._returnToPool(n, i);
         }
     }
@@ -259,20 +275,17 @@ export class CurrencySpawner extends Component {
         if (!parent || !parent.isValid) {
             return GameConfig.designWidth * 0.5 + worldMargin;
         }
-        const rightWorldX = this._computeRightViewportWorldX();
-        return this._worldXToParentLocalX(rightWorldX + worldMargin, parent);
-    }
-
-    private _computeRightViewportWorldX(): number {
-        const canvas = this._getCanvas();
-        const camera = canvas?.cameraComponent;
-        if (camera) {
-            const frame = view.getFrameSize();
-            this._screenProbe.set(frame.width, frame.height * 0.5, 0);
-            camera.screenToWorld(this._screenProbe, this._worldProbe);
-            return this._worldProbe.x;
+        const se = this._getScreenEdgesOrNull();
+        if (se) {
+            return se.worldXToParentLocalX(se.getSpawnWorldX(worldMargin), parent);
         }
-        return GameConfig.designWidth * 0.5;
+        const rightWorldPlusMargin =
+            getViewportLeftRightWorld(
+                this.node.scene?.getComponentInChildren(Canvas) ?? null,
+                this._fallbackScreenProbe,
+                this._fallbackWorldProbe,
+            ).right + worldMargin;
+        return this._worldXToParentLocalX(rightWorldPlusMargin, parent);
     }
 
     private _worldXToParentLocalX(worldX: number, parent: Node): number {
@@ -361,29 +374,30 @@ export class CurrencySpawner extends Component {
             this._dynamicRecycleX = GameConfig.recycleX;
             return;
         }
-        const canvas = this._getCanvas();
-        const camera = canvas?.cameraComponent;
-        let leftEdgeWorldX: number;
-        if (camera) {
-            const frame = view.getFrameSize();
-            this._screenProbe.set(0, frame.height * 0.5, 0);
-            camera.screenToWorld(this._screenProbe, this._worldProbe);
-            leftEdgeWorldX = this._worldProbe.x;
-        } else {
-            leftEdgeWorldX = -GameConfig.designWidth * 0.5;
-        }
+        const se = this._getScreenEdgesOrNull();
+        const leftEdgeWorldX = se
+            ? se.getViewportEdges().left
+            : getViewportLeftRightWorld(
+                  this.node.scene?.getComponentInChildren(Canvas) ?? null,
+                  this._fallbackScreenProbe,
+                  this._fallbackWorldProbe,
+              ).left;
         const parentWorldX = this.moneyParent.worldPosition.x;
         const recycleWorldX = leftEdgeWorldX - GameConfig.recycleViewportMargin;
         this._dynamicRecycleX = (recycleWorldX - parentWorldX) / scaleX;
     }
 
-    private _getCanvas(): Canvas | null {
-        if (this._canvas && this._canvas.isValid) {
-            return this._canvas;
+    private _getScreenEdgesOrNull(): ScreenEdgeProvider | null {
+        const hint = this.screenEdges;
+        if (hint?.isValid) {
+            return hint;
         }
-        const nextCanvas = this.node.scene?.getComponentInChildren(Canvas) ?? null;
-        this._canvas = nextCanvas && nextCanvas.isValid ? nextCanvas : null;
-        return this._canvas;
+        if (this._resolvedScreenEdges?.isValid) {
+            return this._resolvedScreenEdges;
+        }
+        const found = this.node.scene?.getComponentInChildren(ScreenEdgeProvider) ?? null;
+        this._resolvedScreenEdges = found?.isValid ? found : null;
+        return this._resolvedScreenEdges;
     }
 
     private _getBestPickupWorldBounds(root: Node): Rect | null {

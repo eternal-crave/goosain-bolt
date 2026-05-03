@@ -1,5 +1,7 @@
-import { _decorator, CCFloat, Canvas, Component, Node, UITransform, Vec3, view } from 'cc';
+import { _decorator, Canvas, Component, Node, UITransform, Vec3 } from 'cc';
 import { GameConfig } from '../config/GameConfig';
+import { ScreenEdgeProvider } from './ScreenEdgeProvider';
+import { getViewportLeftRightWorld } from './viewportEdgeWorld';
 
 const { ccclass, property } = _decorator;
 
@@ -26,15 +28,15 @@ export class WorldScroll extends Component {
   public wrapTiles: Node[] = [];
 
   @property({
-    type: CCFloat,
-    tooltip: 'Extra world-space distance past viewport left edge before recycling a wrap tile',
+    type: ScreenEdgeProvider,
+    tooltip: 'If unset, resolves first ScreenEdgeProvider in the scene.',
   })
-  public wrapViewportOffset = 0;
+  public screenEdges: ScreenEdgeProvider | null = null;
 
-  private _canvas: Canvas | null = null;
   private _speed = 0;
-  private readonly _screenProbe = new Vec3();
-  private readonly _worldProbe = new Vec3();
+  private _resolvedScreenEdges: ScreenEdgeProvider | null = null;
+  private readonly _fallbackScreenProbe = new Vec3();
+  private readonly _fallbackWorldProbe = new Vec3();
 
   public setScrollSpeed(speed: number): void {
     this._speed = speed;
@@ -127,28 +129,27 @@ export class WorldScroll extends Component {
   }
 
   private _computeRecycleLeftWorldX(): number {
-    const canvas = this._getCanvas();
-    const camera = canvas?.cameraComponent;
-    if (camera) {
-      const frame = view.getFrameSize();
-      this._screenProbe.set(0, frame.height * 0.5, 0);
-      camera.screenToWorld(this._screenProbe, this._worldProbe);
-      return this._worldProbe.x - this.wrapViewportOffset;
-    }
-    const canvasTransform = canvas?.node.getComponent(UITransform);
-    if (!canvasTransform) {
-      return -GameConfig.designWidth * 0.5 - this.wrapViewportOffset;
-    }
-    return canvasTransform.getBoundingBoxToWorld().xMin - this.wrapViewportOffset;
+    const se = this._getScreenEdgesOrNull();
+    return se
+      ? se.getViewportEdges().left
+      : getViewportLeftRightWorld(
+          this.node.scene?.getComponentInChildren(Canvas) ?? null,
+          this._fallbackScreenProbe,
+          this._fallbackWorldProbe,
+        ).left;
   }
 
-  private _getCanvas(): Canvas | null {
-    if (this._canvas && this._canvas.isValid) {
-      return this._canvas;
+  private _getScreenEdgesOrNull(): ScreenEdgeProvider | null {
+    const hint = this.screenEdges;
+    if (hint?.isValid) {
+      return hint;
     }
-    const nextCanvas = this.node.scene?.getComponentInChildren(Canvas) ?? null;
-    this._canvas = nextCanvas && nextCanvas.isValid ? nextCanvas : null;
-    return this._canvas;
+    if (this._resolvedScreenEdges?.isValid) {
+      return this._resolvedScreenEdges;
+    }
+    const found = this.node.scene?.getComponentInChildren(ScreenEdgeProvider) ?? null;
+    this._resolvedScreenEdges = found?.isValid ? found : null;
+    return this._resolvedScreenEdges;
   }
 
   private _maxRightAmongExcept(skipIndex: number): number {
