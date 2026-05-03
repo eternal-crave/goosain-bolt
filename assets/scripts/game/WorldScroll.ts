@@ -1,4 +1,4 @@
-import { _decorator, Canvas, CCFloat, Component, Node, UITransform, Vec3 } from 'cc';
+import { _decorator, Canvas, Component, Node, UITransform, Vec3 } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 import { ScreenEdgeProvider } from './ScreenEdgeProvider';
 import { getViewportLeftRightWorld } from './viewportEdgeWorld';
@@ -26,12 +26,6 @@ export class WorldScroll extends Component {
     tooltip: 'Two or more tile roots for infinite horizontal loop (optional)',
   })
   public wrapTiles: Node[] = [];
-
-  @property({
-    type: CCFloat,
-    tooltip: 'Extra world-space distance past viewport left edge before recycling a wrap tile',
-  })
-  public wrapViewportOffset = 0;
 
   @property({
     type: ScreenEdgeProvider,
@@ -136,14 +130,13 @@ export class WorldScroll extends Component {
 
   private _computeRecycleLeftWorldX(): number {
     const se = this._getScreenEdgesOrNull();
-    const left = se
+    return se
       ? se.getViewportEdges().left
       : getViewportLeftRightWorld(
           this.node.scene?.getComponentInChildren(Canvas) ?? null,
           this._fallbackScreenProbe,
           this._fallbackWorldProbe,
         ).left;
-    return left - this.wrapViewportOffset;
   }
 
   private _getScreenEdgesOrNull(): ScreenEdgeProvider | null {

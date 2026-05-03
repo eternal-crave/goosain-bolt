@@ -113,10 +113,9 @@ export const GameConfig = {
   moneyPoolSizePerPrefab: 8,
 
   /**
-   * When true, ScreenEdgeProvider draws viewport-edge debug discs (red filled circles) in all
-   * builds without relying on the inspector checkbox (GameFlow adds ScreenEdgeProvider at runtime).
-   * Use for playables / device testing; keep false for store builds. Shown if this is true OR
-   * ScreenEdgeProvider's Debug Draw flag is on.
+   * When true, GameFlow-seeded ScreenEdgeProvider instances default debug drawing on; scene-placed
+   * providers still need this true and "Debug Draw Viewport Edges" checked to show discs.
+   * Use for playables / device testing; keep false for store builds.
    */
   showViewportEdgeDebug: true,
 } as const;

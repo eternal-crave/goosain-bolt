@@ -88,9 +88,11 @@ export class GameFlow extends Component {
 
     /** Ensures a single viewport-edge cache runs before sibling Spawner / CurrencySpawner onLoad. */
     private _ensureScreenEdgeProvider(): void {
-        if (!this.node.getComponent(ScreenEdgeProvider)) {
-            this.node.addComponent(ScreenEdgeProvider);
+        if (this.node.getComponent(ScreenEdgeProvider)) {
+            return;
         }
+        const provider = this.node.addComponent(ScreenEdgeProvider);
+        provider.debugDrawViewportEdges = GameConfig.showViewportEdgeDebug;
     }
 
     private readonly _onPlayerDamaged = (): void => {

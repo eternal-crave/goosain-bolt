@@ -2650,6 +2650,8 @@
       "__id__": 71
     },
     "debugDrawViewportEdges": false,
+    "wrapViewportOffsetLeft": 2000,
+    "wrapViewportOffsetRight": 0,
     "_id": "3ewxCb/oNN67kEyiYwX0db"
   },
   {
@@ -2700,7 +2702,6 @@
         "__id__": 45
       }
     ],
-    "wrapViewportOffset": 0,
     "screenEdges": {
       "__id__": 70
     },
@@ -5199,7 +5200,7 @@
       "b": 255,
       "a": 255
     },
-    "_string": "You didn't make it!",
+    "_string": "Tap To Start",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 111.7,

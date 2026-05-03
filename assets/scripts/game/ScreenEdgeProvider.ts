@@ -1,6 +1,7 @@
 import {
     _decorator,
     CCBoolean,
+    CCFloat,
     Canvas,
     Color,
     Component,
@@ -36,6 +37,20 @@ export class ScreenEdgeProvider extends Component {
     })
     public debugDrawViewportEdges = false;
 
+    @property({
+        type: CCFloat,
+        tooltip:
+            'Extra world-space distance beyond raw viewport left (subtract from camera left for gameplay/recycle bounds)',
+    })
+    public wrapViewportOffsetLeft = 0;
+
+    @property({
+        type: CCFloat,
+        tooltip:
+            'Extra world-space distance beyond raw viewport right (add to camera right for gameplay/spawn bounds)',
+    })
+    public wrapViewportOffsetRight = 0;
+
     private _canvas: Canvas | null = null;
     private readonly _screenProbe = new Vec3();
     private readonly _worldProbe = new Vec3();
@@ -58,7 +73,8 @@ export class ScreenEdgeProvider extends Component {
     }
 
     public lateUpdate(): void {
-        const showDebug = this.debugDrawViewportEdges || GameConfig.showViewportEdgeDebug;
+        const showDebug =
+            this.debugDrawViewportEdges && GameConfig.showViewportEdgeDebug;
         if (!showDebug) {
             this._debugGraphics?.clear();
             return;
@@ -79,7 +95,7 @@ export class ScreenEdgeProvider extends Component {
 
     public refresh(): void {
         const vp = getViewportLeftRightWorld(this.getCanvas(), this._screenProbe, this._worldProbe);
-        this._cached = vp;
+        this._cached = this._viewportWithWrapOffset(vp);
     }
 
     /** World-space X beyond the viewport right edge, using current cache plus margin. */
@@ -113,6 +129,15 @@ export class ScreenEdgeProvider extends Component {
     private static _defaultViewport(): ViewportLeftRightWorld {
         const half = GameConfig.designWidth * 0.5;
         return { left: -half, right: half, midWorldY: 0, midWorldZ: 0 };
+    }
+
+    private _viewportWithWrapOffset(raw: ViewportLeftRightWorld): ViewportLeftRightWorld {
+        return {
+            left: raw.left - this.wrapViewportOffsetLeft,
+            right: raw.right + this.wrapViewportOffsetRight,
+            midWorldY: raw.midWorldY,
+            midWorldZ: raw.midWorldZ,
+        };
     }
 
     /** Uses `_cached` (same edges as gameplay) plus recycle/spawn margins from GameConfig. */
