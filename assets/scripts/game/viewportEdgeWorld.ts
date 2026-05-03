@@ -1,4 +1,4 @@
-import { Canvas, Color, Graphics, UITransform, Vec3, screen, view } from 'cc';
+import { Canvas, Vec3, screen, view } from 'cc';
 import { GameConfig } from '../config/GameConfig';
 
 export type ViewportLeftRightWorld = {
@@ -12,8 +12,7 @@ export type ViewportLeftRightWorld = {
  * Pixel rectangle to feed `Camera.screenToWorld` (window / buffer space, bottom-left origin).
  *
  * Prefer `screen.windowSize` first: on desktop Web, `getVisibleSizeInPixel` + origin can describe a
- * rect that does not match what `screenToWorld` expects, so probes map off-screen and debug draws
- * vanish. On mobile, `windowSize` still matches the adapted game frame per engine docs.
+ * rect that does not match what `screenToWorld` expects, so probes map off-screen.
  * Fall back to visible-in-pixel when the window is not ready yet (e.g. first Editor frames).
  */
 function getScreenViewportPixels(): { ox: number; oy: number; w: number; h: number } {
@@ -58,40 +57,4 @@ export function getViewportLeftRightWorld(
   camera.screenToWorld(screenProbe, worldOut);
   const right = worldOut.x;
   return { left, right, midWorldY, midWorldZ };
-}
-
-const DEBUG_FILL_COLOR = new Color(255, 32, 32, 255);
-const DEBUG_RADIUS = 28;
-
-/**
- * Filled circles at viewport left, recycle line, viewport right, and spawn line (right + margin).
- */
-export function drawViewportEdgeDebugCircles(
-  graphics: Graphics,
-  uiTransform: UITransform,
-  canvas: Canvas | null,
-  screenProbe: Vec3,
-  worldScratch: Vec3,
-  localOut: Vec3,
-  spawnWorldMargin: number
-): void {
-  graphics.clear();
-  const { left, right, midWorldY, midWorldZ } = getViewportLeftRightWorld(
-    canvas,
-    screenProbe,
-    worldScratch
-  );
-  const recycleX = left - GameConfig.recycleViewportMargin;
-  const spawnLineX = right + spawnWorldMargin;
-  const fillDisc = (worldX: number): void => {
-    worldScratch.set(worldX, midWorldY, midWorldZ);
-    uiTransform.convertToNodeSpaceAR(worldScratch, localOut);
-    graphics.fillColor = DEBUG_FILL_COLOR;
-    graphics.circle(localOut.x, localOut.y, DEBUG_RADIUS);
-    graphics.fill();
-  };
-  fillDisc(left);
-  fillDisc(recycleX);
-  fillDisc(right);
-  fillDisc(spawnLineX);
 }

@@ -8,6 +8,7 @@ import { PlayerHealth } from '../player/PlayerHealth';
 import { PlayerVisualAnimator } from '../player/PlayerVisualAnimator';
 import { LoseUi } from '../ui/LoseUi';
 import { FinishRope } from '../finish/FinishRope';
+import { ScreenEdgeProvider } from './ScreenEdgeProvider';
 import { Spawner } from './Spawner';
 import { WorldScroll } from './WorldScroll';
 import { ConfettyFXManager } from '../fx/ConfettyFXManager';
@@ -85,11 +86,19 @@ export class GameFlow extends Component {
     /** Obstacle roots that already dealt damage for the current continuous overlap. */
     private readonly _obstacleDamageClaimed = new Set<Node>();
 
+    /** Ensures a single viewport-edge cache runs before sibling Spawner / CurrencySpawner onLoad. */
+    private _ensureScreenEdgeProvider(): void {
+        if (!this.node.getComponent(ScreenEdgeProvider)) {
+            this.node.addComponent(ScreenEdgeProvider);
+        }
+    }
+
     private readonly _onPlayerDamaged = (): void => {
         this.sfx?.playDamage();
     };
 
     public onLoad(): void {
+        this._ensureScreenEdgeProvider();
         input.on(Input.EventType.TOUCH_END, this._onTapMenu, this);
         this._ensureLoseUi();
         this._setHudMenu();
